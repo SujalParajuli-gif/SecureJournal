@@ -1,9 +1,20 @@
 ﻿@using System.Net.Http
 @using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.JSInterop
+
 @using SecureJournal
 @using SecureJournal.Components
+
+// These make our new folder-based components work without long names
+@using SecureJournal.Components.Layout
+@using SecureJournal.Components.Pages
+@using SecureJournal.Components.Shared
+@using SecureJournal.Components.Data
+
+// Helpful for calendar/date UI
+@using System.Globalization

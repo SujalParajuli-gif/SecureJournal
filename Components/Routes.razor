@@ -1,6 +1,15 @@
 ﻿<Router AppAssembly="@typeof(MauiProgram).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
+
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <div class="card p-6">
+                <h1 class="text-2xl font-bold">Page not found</h1>
+                <p class="muted mt-2">The page you are looking for doesn’t exist yet.</p>
+            </div>
+        </LayoutView>
+    </NotFound>
 </Router>
