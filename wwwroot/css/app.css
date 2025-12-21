@@ -1,88 +1,581 @@
-﻿/*#if (SampleContent)*/
+﻿/* Global Styling */
+* {
+    box-sizing: border-box;
+}
+
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    height: 100%;
 }
 
-a, .btn-link {
-    color: #006bb7;
+body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+    background: #f6f6f6;
+    color: #0b0b0c;
 }
 
-.btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+.muted {
+    color: #6b7280;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* -----------------------------
+   APP LAYOUT
+------------------------------ */
+.app-shell {
+    min-height: 100vh;
+    display: flex;
+    background: #f6f6f6;
 }
 
-.content {
-    padding-top: 1.1rem;
+.sidebar {
+    width: 92px;
+    background: #0b0b0c;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 18px 10px;
+    border-radius: 26px;
+    margin: 18px;
+    position: sticky;
+    top: 18px;
+    height: calc(100vh - 36px); /* full screen height minus top+bottom margin */
+    align-self: flex-start; /* important inside flex layout */
 }
 
-/*#endif*/
-h1:focus {
+
+
+.sidebar-links {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+    padding-bottom: 10px;
+}
+
+.nav-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    transition: transform 0.12s ease, background 0.12s ease;
+}
+
+    .nav-icon:hover {
+        transform: translateY(-1px);
+        background: rgba(255,255,255,0.08);
+    }
+
+    .nav-icon.active {
+        background: #ffffff;
+        color: #0b0b0c;
+    }
+
+.app-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 18px 18px 18px 0;
+}
+
+/* -----------------------------
+   TOPBAR 
+------------------------------ */
+.topbar {
+    position: relative;
+    z-index: 50; /* makeing sure overlay image never covers the topbar */
+    margin-right: 10px;
+    margin-left: 30px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+}
+
+.topbar-search {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 660px;
+    padding: 10px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #f6f6f6;
+}
+
+.search-input {
+    border: none;
+    outline: none;
+    width: 100%;
+    background: transparent;
+    color: #0b0b0c;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: #0b0b0c;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+
+/* -----------------------------
+   CONTENT
+------------------------------ */
+.app-content {
+    margin-top: 26px;
+    padding-right: 18px;
+    position: relative;
+    z-index: 1;
+}
+
+.card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    /* small safety: keep big items (like calendar) inside card */
+    overflow: hidden;
+}
+
+/* -----------------------------
+   GREETING IMAGE OVERLAY 
+------------------------------ */
+.greeting {
+    position: relative; /* image is positioned relative to this card */
+    overflow: hidden; /* stops it from floating over other cards */
+    padding: 28px;
+    /* reserve space for image on the right */
+    padding-right: 380px;
+    min-height: 170px;
+    display: flex;
+    align-items: center;
+}
+
+/* The illustration container becomes a "floating card" */
+.greeting-illustration {
+    position: relative;
+    left: 448px;
+    /* keeping it inside the greeting card instead of escaping upwards */
+    pointer-events: none;
+    border-radius: 16px;
+}
+
+    .greeting-illustration img {
+        width: 400px;
+        height: auto;
+        opacity: 1;
+        display: block;
+    }
+
+/* Greeting text sizes  */
+.greeting-title {
+    font-size: 60px; 
+    font-weight: 800; /* looks like extrabold */
+    margin: 0;
+}
+
+.greeting-subtitle {
+    font-size:20px; 
+    margin-top: 6px;
+}
+
+/* -----------------------------
+   BUTTONS
+------------------------------ */
+.btn-dark, .btn-light, .btn-danger {
+    border: none;
+    cursor: pointer;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-weight: 600;
+}
+
+.btn-dark {
+    background: #0b0b0c;
+    color: #ffffff;
+}
+
+.btn-light {
+    background: #f6f6f6;
+    color: #0b0b0c;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+/* -----------------------------
+   HELPERS
+------------------------------ */
+.w-full {
+    width: 100%;
+}
+
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ---------------------------------------------------------
+   DASHBOARD 
+---------------------------------------------------------- */
+.grid-dashboard {
+    margin-left:30px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+    /* left section grows */
+    .grid-dashboard > :first-child {
+        flex: 1;
+        min-width: 0; /* prevents overflow when there are long inputs */
+    }
+
+    /* right section stays like a fixed sidebar column */
+    .grid-dashboard > :last-child {
+        width: 490px; /* you can tweak this: 380 / 420 / 460 */
+        flex-shrink: 0;
+    }
+
+/* 2 cards side by side */
+.grid-2 {
+    display: flex;
+    gap: 16px;
+}
+
+    .grid-2 > * {
+        flex: 1;
+        min-width: 0;
+    }
+
+/* 3 cards side by side */
+.grid-3 {
+    display: flex;
+    gap: 16px;
+}
+
+    .grid-3 > * {
+        flex: 1;
+        min-width: 0;
+    }
+
+/* stats row (3 cards) */
+.stats-row {
+    display: flex;
+    gap: 16px;
+}
+
+    .stats-row > * {
+        flex: 1;
+        min-width: 0;
+    }
+
+/* when screen is small, we stack the layout */
+@media (max-width: 1100px) {
+    .grid-dashboard {
+        flex-direction: column;
+    }
+
+        .grid-dashboard > :last-child {
+            width: 100%;
+        }
+
+    .grid-2, .grid-3, .stats-row {
+        flex-direction: column;
+    }
+
+    /* on small screens, remove the reserved right padding for the image */
+    .greeting {
+        padding-right: 24px;
+        min-height: auto;
+    }
+
+    /* and making the image block behave nicely */
+    .greeting-illustration {
+        position: static; /* puts it inside normal flow */
+        margin-top: 14px;
+        width: fit-content;
+    }
+}
+
+.stat {
+    padding: 18px;
+}
+
+.stat-number {
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.label {
+    display: block;
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.input {
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background: #f6f6f6;
+    color: #0b0b0c;
     outline: none;
 }
 
-.valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
+.textarea {
+    min-height: 160px;
+    resize: vertical;
 }
 
-.invalid {
-    outline: 1px solid #e50000;
+.timestamps {
+    display: flex;
+    gap: 18px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #f6f6f6;
+    border: 1px solid #e5e7eb;
 }
 
-.validation-message {
-    color: #e50000;
+.empty-box {
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px dashed #e5e7eb;
+    background: #f6f6f6;
+    color: #6b7280;
 }
 
-#blazor-error-ui {
-    background: lightyellow;
-    bottom: 0;
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
-    display: none;
-    left: 0;
-    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
-    position: fixed;
-    width: 100%;
-    z-index: 1000;
+.preview-box {
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background: #f6f6f6;
+    min-height: 160px;
 }
 
-    #blazor-error-ui .dismiss {
-        cursor: pointer;
-        position: absolute;
-        right: 0.75rem;
-        top: 0.5rem;
+.preview {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chip {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #f6f6f6;
+    cursor: pointer;
+}
+
+    .chip .material-icons {
+        font-size: 16px;
     }
 
-.blazor-error-boundary {
-    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
-    padding: 1rem 1rem 1rem 3.7rem;
-    color: white;
+.secondary-box {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #f6f6f6;
+    padding: 12px;
+    max-height: 220px;
+    overflow: auto;
 }
 
-    .blazor-error-boundary::after {
-        content: "An error has occurred."
-    }
-
-.status-bar-safe-area {
-    display: none;
+.secondary-title {
+    font-size: 12px;
+    font-weight: 700;
+    margin: 8px 0;
 }
 
-@supports (-webkit-touch-callout: none) {
-    .status-bar-safe-area {
-        display: flex;
-        position: sticky;
-        top: 0;
-        height: env(safe-area-inset-top);
-        background-color: #f7f7f7;
-        width: 100%;
-        z-index: 1;
+.secondary-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.chip-check {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+/* -----------------------------
+   CALENDAR  
+------------------------------ */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 46px);
+    gap: 10px;
+    justify-content: center; /* keeps the grid centered inside the card */
+}
+
+.calendar-head {
+    font-size: 12px;
+    color: #6b7280;
+    text-align: center;
+}
+
+.calendar-day {
+    width: 46px; /* match the grid column size */
+    height: 46px;
+    position: relative;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background: #f6f6f6;
+    cursor: pointer;
+}
+
+    .calendar-day.blank {
+        opacity: 0;
+        cursor: default;
     }
 
-    .flex-column, .navbar-brand {
-        padding-left: env(safe-area-inset-left);
+    .calendar-day.today {
+        outline: 2px solid rgba(99,102,241,0.35);
     }
+
+    .calendar-day.selected {
+        background: #ffffff;
+        border-color: #0b0b0c;
+    }
+
+
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 }
+
+.chart-placeholder {
+    height: 220px;
+    border-radius: 14px;
+    border: 1px dashed #e5e7eb;
+    background: #f6f6f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+}
+
+.page-title {
+    padding: 8px 2px;
+}
+
+/* -----------------------------
+   DARK THEME
+   We need to Add class="theme-dark" on body to enable
+------------------------------ */
+body.theme-dark {
+    background: #0b0b0c;
+    color: #f3f4f6;
+}
+
+    body.theme-dark .muted {
+        color: #a1a1aa;
+    }
+
+    body.theme-dark .card,
+    body.theme-dark .topbar {
+        background: #121212;
+        border-color: #27272a;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    body.theme-dark .topbar-search,
+    body.theme-dark .input,
+    body.theme-dark .btn-light,
+    body.theme-dark .calendar-day,
+    body.theme-dark .preview-box,
+    body.theme-dark .empty-box,
+    body.theme-dark .secondary-box,
+    body.theme-dark .chip {
+        background: #0b0b0c;
+        border-color: #27272a;
+        color: #f3f4f6;
+    }
+
+    body.theme-dark .search-input {
+        color: #f3f4f6;
+    }
+
+    body.theme-dark .chip-check {
+        background: #121212;
+        border-color: #27272a;
+    }
+
+    body.theme-dark .greeting-illustration {
+        background: #121212;
+        border-color: #27272a;
+    }

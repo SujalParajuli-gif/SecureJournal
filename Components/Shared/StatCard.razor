@@ -1,0 +1,9 @@
+<div class="card stat">
+    <div class="stat-number">@Number</div>
+    <div class="muted">@Label</div>
+</div>
+
+@code {
+    [Parameter] public string Number { get; set; } = "0";
+    [Parameter] public string Label { get; set; } = "Label";
+}

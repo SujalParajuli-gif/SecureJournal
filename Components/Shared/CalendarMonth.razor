@@ -1,0 +1,154 @@
+@using System.Globalization
+
+<div class="card p-5 calendar">
+    <div class="flex-between">
+        @* We showed the month name here *@
+        <div class="font-semibold">@monthLabel</div>
+
+        <div class="row">
+            @* We used these buttons to move month back/forward *@
+            <button class="icon-btn" @onclick="PrevMonth">
+                <span class="material-icons">chevron_left</span>
+            </button>
+            <button class="icon-btn" @onclick="NextMonth">
+                <span class="material-icons">chevron_right</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="calendar-grid mt-4">
+        @* We printed Mon..Sun headings *@
+        @foreach (var d in dayNames)
+        {
+            <div class="calendar-head">@d</div>
+        }
+
+        @* We printed calendar cells (days + blanks) *@
+        @foreach (var cell in cells)
+        {
+            <button class="calendar-day @cell.Css"
+                    disabled="@cell.IsBlank"
+                    @onclick="() => Select(cell.Date)">
+                @if (!cell.IsBlank)
+                {
+                    <span>@cell.Date.Day</span>
+
+                    @* We showed a fake dot just for UI look *@
+                    @if (cell.HasEntryDot)
+                    {
+                        <span class="dot"></span>
+                    }
+                }
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool Compact { get; set; } = false; // We kept this for later if needed
+
+    // We started the calendar from the current month
+    private DateTime view = new(DateTime.Now.Year, DateTime.Now.Month, 1);
+
+    // We selected today's date by default
+    private DateTime selected = DateTime.Today;
+
+    // We showed this label at the top
+    private string monthLabel => view.ToString("MMMM yyyy");
+
+    // We kept day names in Monday-first order
+    private string[] dayNames = Array.Empty<string>();
+
+    // We stored day cells here
+    private List<DayCell> cells = new();
+
+    protected override void OnInitialized()
+    {
+        // We prepared headings once
+        dayNames = GetMondayFirstDayNames();
+
+        // We built the grid when the component loaded
+        BuildCalendar();
+    }
+
+    private void PrevMonth()
+    {
+        // We moved one month back
+        view = view.AddMonths(-1);
+        BuildCalendar();
+    }
+
+    private void NextMonth()
+    {
+        // We moved one month forward
+        view = view.AddMonths(1);
+        BuildCalendar();
+    }
+
+    private void Select(DateTime date)
+    {
+        // We saved the clicked date
+        selected = date;
+        BuildCalendar();
+    }
+
+    private void BuildCalendar()
+    {
+        // We cleared old cells first
+        cells.Clear();
+
+        int daysInMonth = DateTime.DaysInMonth(view.Year, view.Month);
+
+        // We calculated how many blanks came before day 1 (Mon=0 ... Sun=6)
+        int offset = ((int)view.DayOfWeek + 6) % 7;
+
+        // We added blank cells at the start
+        for (int i = 0; i < offset; i++)
+            cells.Add(new DayCell { IsBlank = true, Css = "blank" });
+
+        // We added real days for the month
+        for (int day = 1; day <= daysInMonth; day++)
+        {
+            var date = new DateTime(view.Year, view.Month, day);
+
+            // We added dots on some dates just for visual realism (UI-only)
+            bool fakeHasEntry = (day % 3 == 0);
+
+            string css = "";
+
+            // We highlighted today
+            if (date.Date == DateTime.Today) css += " today";
+
+            // We highlighted selected date
+            if (date.Date == selected.Date) css += " selected";
+
+            cells.Add(new DayCell
+            {
+                Date = date,
+                IsBlank = false,
+                Css = css.Trim(),
+                HasEntryDot = fakeHasEntry
+            });
+        }
+
+        // We padded the end so the grid stayed full weeks
+        while (cells.Count % 7 != 0)
+            cells.Add(new DayCell { IsBlank = true, Css = "blank" });
+    }
+
+    private string[] GetMondayFirstDayNames()
+    {
+        // We took culture day names and shifted them to Monday-first
+        var names = CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames;
+        return new[] { names[1], names[2], names[3], names[4], names[5], names[6], names[0] };
+    }
+
+    // We used a small class to store one cell info
+    private class DayCell
+    {
+        public DateTime Date { get; set; }
+        public bool IsBlank { get; set; }
+        public string Css { get; set; } = "";
+        public bool HasEntryDot { get; set; }
+    }
+}

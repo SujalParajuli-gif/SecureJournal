@@ -1,0 +1,21 @@
+@page "/streak"
+
+<div class="page-title">
+    <h1 class="text-2xl font-bold">Streak Tracking</h1>
+    <p class="muted">Current streak, longest streak, and missed days.</p>
+</div>
+
+<div class="stats-row mt-4">
+    <StatCard Number="0" Label="Current streak" />
+    <StatCard Number="0" Label="Longest streak" />
+    <StatCard Number="0" Label="Missed days" />
+</div>
+
+<div class="card p-5 mt-4">
+    <h3 class="font-semibold text-lg">Streak Calendar</h3>
+    <p class="muted text-sm mt-1">Later we’ll color dates based on entries.</p>
+
+    <div class="mt-3">
+        <CalendarMonth />
+    </div>
+</div>

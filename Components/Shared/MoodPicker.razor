@@ -1,0 +1,86 @@
+<div class="card p-4">
+    <h3 class="font-semibold text-lg">Mood</h3>
+    <p class="muted text-sm mt-1">Pick 1 primary mood and up to 2 secondary moods (UI-only).</p>
+
+    <div class="grid-2 mt-4">
+        <div>
+            <label class="label">Primary Mood (Required)</label>
+
+            @* We used dropdown for primary mood *@
+            <select class="input" @bind="PrimaryMood">
+                <option value="">Select primary mood...</option>
+                @foreach (var group in JournalConstants.MoodGroups)
+                {
+                    <optgroup label="@group.Key">
+                        @foreach (var mood in group.Value)
+                        {
+                            <option value="@mood">@mood</option>
+                        }
+                    </optgroup>
+                }
+            </select>
+        </div>
+
+        <div>
+            <label class="label">Secondary Moods (Optional: max 2)</label>
+
+            <div class="secondary-box">
+                @foreach (var group in JournalConstants.MoodGroups)
+                {
+                    <div class="secondary-group">
+                        <div class="secondary-title">@group.Key</div>
+
+                        <div class="secondary-list">
+                            @foreach (var mood in group.Value)
+                            {
+                                bool isChecked = SecondaryMoods.Contains(mood);
+
+                                <label class="chip-check">
+                                    <input type="checkbox"
+                                           checked="@isChecked"
+                                           @onchange="(e) => SecondaryChanged(mood, e)" />
+                                    <span>@mood</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="muted text-xs mt-2">
+                Selected: @(SecondaryMoods.Count)/2
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string PrimaryMood { get; set; } = ""; // We stored primary mood here
+    [Parameter] public List<string> SecondaryMoods { get; set; } = new(); // We stored secondary moods here
+
+    private void SecondaryChanged(string mood, ChangeEventArgs e)
+    {
+        // We read checkbox value safely
+        bool isChecked = false;
+
+        if (e.Value is bool b) isChecked = b;
+        else if (e.Value is string s && bool.TryParse(s, out var parsed)) isChecked = parsed;
+
+        ToggleSecondary(mood, isChecked);
+    }
+
+    private void ToggleSecondary(string mood, bool isChecked)
+    {
+        if (isChecked)
+        {
+            // We allowed maximum 2 secondary moods 
+            if (!SecondaryMoods.Contains(mood) && SecondaryMoods.Count < 2)
+                SecondaryMoods.Add(mood);
+        }
+        else
+        {
+            // We removed it when unchecked
+            SecondaryMoods.Remove(mood);
+        }
+    }
+}

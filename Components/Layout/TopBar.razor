@@ -1,0 +1,22 @@
+<div class="topbar">
+    <div class="topbar-search">
+        <span class="material-icons muted">search</span>
+        <input class="search-input" placeholder="Search entries..." />
+    </div>
+
+    <div class="topbar-actions">
+        <button class="icon-btn" title="Toggle Theme" @onclick="OnToggleTheme">
+            <span class="material-icons">@((IsDark) ? "dark_mode" : "light_mode")</span>
+        </button>
+
+      
+        <div class="avatar" title="Profile">
+            User
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsDark { get; set; }
+    [Parameter] public EventCallback OnToggleTheme { get; set; }
+}
