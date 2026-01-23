@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
 
-<div class="app-shell @(isDark ? "theme-dark" : "theme-light")">
+<div class="app-shell">
     <Sidebar />
 
     <div class="app-main">
@@ -13,11 +14,30 @@
 </div>
 
 @code {
-    // UI local theme toggle state
+    // We kept local UI theme state here
     private bool isDark = false;
 
-    private void ToggleTheme()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        // We applied the theme when the layout loaded first time
+        if (firstRender)
+        {
+            await ApplyThemeToBody();
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        // We switched the theme value
         isDark = !isDark;
+
+        // We applied the class on body so CSS worked
+        await ApplyThemeToBody();
+    }
+
+    private async Task ApplyThemeToBody()
+    {
+        // We added/removed body.theme-dark based on isDark
+        await JS.InvokeVoidAsync("themeHelper.setDark", isDark);
     }
 }

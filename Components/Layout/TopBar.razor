@@ -5,11 +5,10 @@
     </div>
 
     <div class="topbar-actions">
-        <button class="icon-btn" title="Toggle Theme" @onclick="OnToggleTheme">
+        <button class="icon-btn" title="Toggle Theme" @onclick="ToggleClicked">
             <span class="material-icons">@((IsDark) ? "dark_mode" : "light_mode")</span>
         </button>
 
-      
         <div class="avatar" title="Profile">
             User
         </div>
@@ -19,4 +18,9 @@
 @code {
     [Parameter] public bool IsDark { get; set; }
     [Parameter] public EventCallback OnToggleTheme { get; set; }
+
+    private async Task ToggleClicked()
+    {
+        await OnToggleTheme.InvokeAsync();
+    }
 }

@@ -535,47 +535,48 @@ body {
 
 /* -----------------------------
    DARK THEME
-   We need to Add class="theme-dark" on body to enable
+   We applied theme-dark on .app-shell
 ------------------------------ */
-body.theme-dark {
+.app-shell.theme-dark {
     background: #0b0b0c;
     color: #f3f4f6;
+    min-height: 100vh;
 }
 
-    body.theme-dark .muted {
+    .app-shell.theme-dark .muted {
         color: #a1a1aa;
     }
 
-    body.theme-dark .card,
-    body.theme-dark .topbar {
+    .app-shell.theme-dark .card,
+    .app-shell.theme-dark .topbar {
         background: #121212;
         border-color: #27272a;
         box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     }
 
-    body.theme-dark .topbar-search,
-    body.theme-dark .input,
-    body.theme-dark .btn-light,
-    body.theme-dark .calendar-day,
-    body.theme-dark .preview-box,
-    body.theme-dark .empty-box,
-    body.theme-dark .secondary-box,
-    body.theme-dark .chip {
+    .app-shell.theme-dark .topbar-search,
+    .app-shell.theme-dark .input,
+    .app-shell.theme-dark .btn-light,
+    .app-shell.theme-dark .calendar-day,
+    .app-shell.theme-dark .preview-box,
+    .app-shell.theme-dark .empty-box,
+    .app-shell.theme-dark .secondary-box,
+    .app-shell.theme-dark .chip {
         background: #0b0b0c;
         border-color: #27272a;
         color: #f3f4f6;
     }
 
-    body.theme-dark .search-input {
+    .app-shell.theme-dark .search-input {
         color: #f3f4f6;
     }
 
-    body.theme-dark .chip-check {
+    .app-shell.theme-dark .chip-check {
         background: #121212;
         border-color: #27272a;
     }
 
-    body.theme-dark .greeting-illustration {
+    .app-shell.theme-dark .greeting-illustration {
         background: #121212;
         border-color: #27272a;
     }
