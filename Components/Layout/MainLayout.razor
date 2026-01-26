@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="app-shell @(isDark ? "theme-dark" : "")">
+<div class="app-shell @(isDark ? "theme-dark" : "theme-light")">
     <Sidebar />
 
     <div class="app-main">
@@ -13,21 +13,11 @@
 </div>
 
 @code {
-    // loading saved theme value from local storage
-    private bool isDark;
-
-    protected override void OnInitialized()
-    {
-        // Using Preferences to persist theme after restart
-        isDark = Preferences.Get("theme.dark", false);
-    }
+    // UI local theme toggle state
+    private bool isDark = false;
 
     private void ToggleTheme()
     {
-        // making a function for switching theme
         isDark = !isDark;
-
-        // saving the theme value so it stays after restart
-        Preferences.Set("theme.dark", isDark);
     }
 }
