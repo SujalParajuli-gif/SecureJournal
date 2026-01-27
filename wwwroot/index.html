@@ -6,22 +6,33 @@
     <title>SecureJournal</title>
     <base href="/" />
 
+    <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Inter font used by the UI -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Theme helper (dark mode bridge for WebView UI) -->
     <script src="js/themeHelper.js"></script>
 
+    <!-- Tailwind CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- Chart.js CDN used by the Analytics page -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- App styles (shared classes used across pages/components) -->
     <link href="css/app.css" rel="stylesheet" />
 </head>
 <body>
 
+    <!-- Blazor root element -->
     <div id="app">Loading...</div>
 
-    <!-- We loaded helper first so Blazor could call it -->
-    <script src="js/themeHelper.js"></script>
+    <!-- Analytics charts JS interop (called from Analytics.razor) -->
+    <script src="js/analyticsCharts.js"></script>
 
-    <!-- We kept Blazor script after helper -->
+    <!-- Blazor WebView runtime script -->
     <script src="_framework/blazor.webview.js"></script>
 
 </body>
