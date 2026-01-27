@@ -2,35 +2,41 @@
 @inject JournalEntryService Entries
 @implements IDisposable
 
+@* Dashboard page *@
+@* TodayEntryCard anchor target is used for scroll navigation *@
+
 <div class="max-w-[1400px] mx-auto p-4 md:p-8 space-y-8">
-    @* Top Section: Greeting *@
+    @* Greeting section *@
     <GreetingCard Name="User" />
 
-    @* Stats Section: Back to ONE ROW with polished styling *@
+    @* Stats row *@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard Number="@entriesThisWeek" Label="Entries this week" Icon="edit_calendar" />
         <StatCard Number="@currentStreak" Label="Current streak" Icon="local_fire_department" IsPrimary="true" />
         <StatCard Number="@commonMood" Label="Recent Mood" Icon="face" />
     </div>
 
-    @* Main Content Grid *@
+    @* Quick actions + mini calendar layout *@
     <div class="grid grid-cols-12 gap-6">
-        @* Quick Actions Container *@
+        @* Quick actions panel *@
         <div class="col-span-12 lg:col-span-5">
-            <div class="bg-white p-8 rounded-[2rem] border border-neutral-100 shadow-sm h-full flex flex-col">
-                <h3 class="font-bold text-xl text-black">Quick Actions</h3>
-                <p class="text-neutral-500 text-sm mt-1">Jump to your most used pages.</p>
+            <div class="dash-surface p-8 rounded-[2rem] border shadow-sm h-full flex flex-col">
+                <h3 class="dash-title font-bold text-xl">Quick Actions</h3>
+                <p class="dash-muted text-sm mt-1">Jump to your most used pages.</p>
 
                 <div class="mt-8 flex flex-col gap-3 flex-grow">
                     <a class="flex items-center justify-between bg-black text-white p-5 rounded-2xl hover:bg-neutral-800 transition-all group" href="/calendar">
                         <span class="font-semibold">Open Calendar</span>
                         <span class="material-icons text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
                     </a>
-                    <a class="flex items-center justify-between bg-neutral-100 text-black p-5 rounded-2xl hover:bg-neutral-200 transition-all group" href="/timeline">
+
+                    @* Secondary navigation links *@
+                    <a class="dash-soft-btn flex items-center justify-between p-5 rounded-2xl transition-all group" href="/timeline">
                         <span class="font-semibold">Timeline View</span>
                         <span class="material-icons text-sm">history</span>
                     </a>
-                    <a class="flex items-center justify-between bg-neutral-100 text-black p-5 rounded-2xl hover:bg-neutral-200 transition-all group" href="/analytics">
+
+                    <a class="dash-soft-btn flex items-center justify-between p-5 rounded-2xl transition-all group" href="/analytics">
                         <span class="font-semibold">Analytics</span>
                         <span class="material-icons text-sm">insights</span>
                     </a>
@@ -38,63 +44,72 @@
             </div>
         </div>
 
-        @* Mini Calendar Container *@
+        @* Mini calendar panel *@
         <div class="col-span-12 lg:col-span-7">
-            <div class="bg-white p-8 rounded-[2rem] border border-neutral-100 shadow-sm h-full">
+            <div class="dash-surface p-8 rounded-[2rem] border shadow-sm h-full">
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h3 class="font-bold text-xl text-black">Mini Calendar</h3>
-                        <p class="text-neutral-500 text-sm mt-1">Browse days quickly.</p>
+                        <h3 class="dash-title font-bold text-xl">Mini Calendar</h3>
+                        <p class="dash-muted text-sm mt-1">Browse days quickly.</p>
                     </div>
-                    <a href="/calendar" class="bg-neutral-100 px-5 py-2 rounded-xl text-sm font-bold hover:bg-neutral-200 transition-colors">Open</a>
+
+                    <a href="/calendar" class="dash-pill px-5 py-2 rounded-xl text-sm font-bold transition-colors">Open</a>
                 </div>
-                <CalendarMonth Compact="false" />
+
+                @* Calendar highlight uses DatesWithEntries keys *@
+                <CalendarMonth Compact="false" DatesWithEntries="@monthKeys" />
             </div>
         </div>
     </div>
 
-    @* Entry Section *@
-    <div class="mt-4">
+    @* Today entry section (anchor target) *@
+    <div id="today-entry" class="mt-4">
         <TodayEntryCard />
     </div>
 </div>
 
 @code {
+    // Dashboard stat values
     private string entriesThisWeek = "0";
     private string currentStreak = "0";
     private string commonMood = "-";
 
+    // Date keys that have entries for the current month (used by mini calendar)
+    private HashSet<string> monthKeys = new(StringComparer.OrdinalIgnoreCase);
+
     protected override async Task OnInitializedAsync()
     {
+        // Dashboard refresh when entries are created/updated/deleted
         Entries.DataChanged += Refresh;
         await LoadStatsAsync();
     }
 
+    // Refresh handler for service events
     private async void Refresh()
     {
         await LoadStatsAsync();
         await InvokeAsync(StateHasChanged);
     }
 
+    // Loads streak, week count, recent mood, and month keys for calendar highlight
     private async Task LoadStatsAsync()
     {
-        // Fetch streak stats from service
         var (streak, _, _) = await Entries.GetStreakStatsAsync();
         currentStreak = streak.ToString();
 
         var allEntries = await Entries.GetAllAsync();
         var weekAgo = DateTime.Now.Date.AddDays(-7);
-
-        // FIX: Changed .Date to .EntryDate to match JournalEntry model
         entriesThisWeek = allEntries.Count(x => x.EntryDate >= weekAgo).ToString();
 
-        // FIX: Changed .Date to .EntryDate to match JournalEntry model
         var latestEntry = allEntries.OrderByDescending(x => x.EntryDate).FirstOrDefault();
         commonMood = latestEntry?.PrimaryMood ?? "None";
+
+        monthKeys = await Entries.GetDateKeysWithEntriesAsync(DateTime.Now);
     }
 
     public void Dispose()
     {
+        // Event unsubscription to avoid memory leaks
         Entries.DataChanged -= Refresh;
     }
 }
