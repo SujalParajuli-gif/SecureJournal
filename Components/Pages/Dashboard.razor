@@ -1,10 +1,39 @@
+@* page UI for main Dashboard *@
+
 @page "/"
 
 <div class="grid-dashboard">
     <div class="col-main">
         <GreetingCard Name="User" />
 
-        <div class="stats-row mt-4">
+        <div class="grid-2 mt-6" style="grid-template-columns: 1fr 1.3fr;">
+            <div class="card p-6">
+                <h3 class="font-semibold text-lg">Quick Actions</h3>
+                <p class="muted text-sm mt-1">Jump to your most used pages.</p>
+
+                <div class="mt-4 stack">
+                    <a class="btn-dark w-full" href="/calendar">Open Calendar</a>
+                    <a class="btn-light w-full" href="/timeline">Timeline View</a>
+                    <a class="btn-light w-full" href="/analytics">Analytics</a>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <div class="flex-between">
+                    <div>
+                        <h3 class="font-semibold text-lg">Mini Calendar</h3>
+                        <p class="muted text-sm mt-1">Browse days quickly.</p>
+                    </div>
+                    <a class="btn-light" href="/calendar">Open</a>
+                </div>
+
+                <div class="mt-4">
+                    <CalendarMonth Compact="false" />
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-row mt-6">
             <StatCard Number="0" Label="Entries this week" />
             <StatCard Number="0" Label="Current streak" />
             <StatCard Number="0" Label="Most common mood" />
@@ -12,25 +41,6 @@
 
         <div class="mt-6">
             <TodayEntryCard />
-        </div>
-    </div>
-
-    <div class="col-right">
-        <div class="card p-5">
-            <h3 class="font-semibold text-lg">Quick Actions</h3>
-            <div class="mt-4 stack">
-                <a class="btn-dark w-full" href="/calendar">Open Calendar</a>
-                <a class="btn-light w-full" href="/timeline">Timeline View</a>
-                <a class="btn-light w-full" href="/analytics">Analytics</a>
-            </div>
-        </div>
-
-        <div class="card p-5 mt-4">
-            <h3 class="font-semibold text-lg">Mini Calendar</h3>
-            <p class="muted text-sm mt-1">UI-only calendar widget.</p>
-            <div class="mt-3">
-                <CalendarMonth Compact="true" />
-            </div>
         </div>
     </div>
 </div>
