@@ -3,7 +3,9 @@
 @inject JournalEntryService Entries
 @inject CalendarStateService CalendarState
 
+@* Calendar page layout *@
 <div class="card p-6">
+    @* Page header + navigation buttons *@
     <div class="flex-between">
         <div>
             <h1 class="text-2xl font-bold">Calendar</h1>
@@ -16,7 +18,9 @@
         </div>
     </div>
 
+    @* Two-column layout: month view (left) + selected date details (right) *@
     <div class="mt-6" style="display:grid; grid-template-columns: 1.6fr 1fr; gap: 16px;">
+        @* Month view calendar *@
         <div class="card p-6">
             <div class="flex-between">
                 <div class="font-semibold">Month View</div>
@@ -28,6 +32,7 @@
             </div>
         </div>
 
+        @* Selected date info panel *@
         <div class="card p-6">
             <div class="font-semibold">Selected Date</div>
             <div class="muted mt-1">@CalendarState.SelectedDate.ToString("yyyy-MM-dd")</div>
@@ -35,6 +40,7 @@
             <div class="mt-5">
                 @if (selectedEntry == null)
                 {
+                    @* No entry for selected date *@
                     <div class="muted">No entry for this date.</div>
 
                     <div class="mt-4 stack">
@@ -44,6 +50,7 @@
                 }
                 else
                 {
+                    @* Entry summary card *@
                     <div class="card p-5">
                         <div class="font-semibold">@selectedEntry.Title</div>
                         <div class="muted text-sm mt-1">@selectedEntry.Category</div>
@@ -66,6 +73,7 @@
                 }
             </div>
 
+            @* Small hint text *@
             <div class="mt-6 muted text-xs">
                 Tip: use Search to filter by mood, tags, and date range.
             </div>
@@ -74,24 +82,31 @@
 </div>
 
 @code {
+    // Dates with entries for the currently viewed month (yyyy-MM-dd keys)
     private HashSet<string> monthKeys = new(StringComparer.OrdinalIgnoreCase);
+
+    // Entry for the selected date (null if none)
     private JournalEntry? selectedEntry;
 
     protected override async Task OnInitializedAsync()
     {
+        // Event subscriptions for reactive UI updates
         CalendarState.SelectedDateChanged += OnDateChanged;
         Entries.DataChanged += OnDataChanged;
 
+        // Initial load
         await LoadMonthKeysAsync(DateTime.Now);
         await LoadSelectedAsync();
     }
 
+    // Selected date changed from CalendarStateService
     private async void OnDateChanged()
     {
         await LoadSelectedAsync();
         await InvokeAsync(StateHasChanged);
     }
 
+    // Data changed from JournalEntryService (create/update/delete)
     private async void OnDataChanged()
     {
         await LoadMonthKeysAsync(CalendarState.SelectedDate);
@@ -99,17 +114,20 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    // Calendar day clicked
     private async Task DateClicked(DateTime d)
     {
         CalendarState.SetSelectedDate(d);
         await LoadMonthKeysAsync(d);
     }
 
+    // Load all date keys for the month view highlight
     private async Task LoadMonthKeysAsync(DateTime month)
     {
         monthKeys = await Entries.GetDateKeysWithEntriesAsync(month);
     }
 
+    // Load entry for the currently selected date
     private async Task LoadSelectedAsync()
     {
         selectedEntry = await Entries.GetByDateAsync(CalendarState.SelectedDate);
@@ -117,6 +135,7 @@
 
     public void Dispose()
     {
+        // Event unsubscription to avoid memory leaks
         CalendarState.SelectedDateChanged -= OnDateChanged;
         Entries.DataChanged -= OnDataChanged;
     }
