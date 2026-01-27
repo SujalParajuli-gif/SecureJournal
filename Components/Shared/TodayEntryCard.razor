@@ -1,8 +1,11 @@
+@using Markdig
+@inject JournalEntryService Entries
+
 <div class="card p-5">
     <div class="flex-between">
         <div>
-            <h2 class="text-xl font-bold">Today’s Entry</h2>
-            <p class="muted text-sm">buttons don’t save yet.</p>
+            <h2 class="text-xl font-bold">Todays Entry</h2>
+            <p class="muted text-sm">@statusText</p>
         </div>
 
         <div class="pill">One entry per day</div>
@@ -11,15 +14,11 @@
     <div class="grid-2 mt-4">
         <div>
             <label class="label">Entry Date</label>
-
-            @* We showed today’s date in the input *@
-            <input class="input" type="date" value="@TodayDateValue" />
+            <input class="input" type="date" value="@TodayDateValue" disabled />
         </div>
 
         <div>
             <label class="label">Category</label>
-
-            @* We used a dropdown for category *@
             <select class="input" @bind="Category">
                 @foreach (var c in JournalConstants.EntryCategories)
                 {
@@ -31,34 +30,28 @@
 
     <div class="mt-4">
         <label class="label">Title</label>
-
-        @* We kept title as a simple input *@
         <input class="input" placeholder="Give your entry a title..." @bind="Title" />
     </div>
 
     <div class="mt-4">
         <div class="flex-between">
             <label class="label">Content (Markdown)</label>
-
-            @* We toggled preview using this button *@
             <button class="btn-light" @onclick="TogglePreview">
                 @(ShowPreview ? "Hide Preview" : "Show Preview")
             </button>
         </div>
 
         <div class="grid-2 mt-2">
-            @* We typed content here *@
             <textarea class="input textarea" placeholder="Write in Markdown..." @bind="Content"></textarea>
 
             <div class="preview-box">
                 @if (!ShowPreview)
                 {
-                    <div class="muted text-sm">Preview is off. Click “Show Preview”.</div>
+                    <div class="muted text-sm">Preview is off. Click Show Preview.</div>
                 }
                 else
                 {
                     <div class="preview">
-                        @* We displayed basic preview html here *@
                         @((MarkupString)PreviewHtml)
                     </div>
                 }
@@ -67,79 +60,158 @@
     </div>
 
     <div class="mt-4">
-        @* We reused mood component here *@
-        <MoodPicker PrimaryMood="@PrimaryMood" SecondaryMoods="@SecondaryMoods" />
+        <MoodPicker @bind-PrimaryMood="PrimaryMood" @bind-SecondaryMoods="SecondaryMoods" />
     </div>
 
     <div class="mt-4">
-        @* We reused tag component here *@
-        <TagPicker Tags="@Tags" />
+        <TagPicker @bind-Tags="Tags" />
     </div>
 
     <div class="mt-4 timestamps">
         <div>
             <div class="muted text-xs">CreatedAt</div>
-            <div class="text-sm">@CreatedAt</div>
+            <div class="text-sm">@CreatedAtText</div>
         </div>
         <div>
             <div class="muted text-xs">UpdatedAt</div>
-            <div class="text-sm">@UpdatedAt</div>
+            <div class="text-sm">@UpdatedAtText</div>
         </div>
     </div>
 
     <div class="mt-4 row">
-        @* We kept buttons for *@
-        <button class="btn-dark">Create</button>
-        <button class="btn-light">Update</button>
-        <button class="btn-danger">Delete</button>
+        <button class="btn-dark" @onclick="SaveToday">@(hasTodayEntry ? "Update" : "Create")</button>
+        <button class="btn-danger" @onclick="DeleteToday" disabled="@(!hasTodayEntry)">Delete</button>
     </div>
 </div>
 
 @code {
-    // We stored the basic fields here
     private string Title = "";
     private string Content = "";
-
-    // We controlled preview with this boolean
     private bool ShowPreview = true;
 
-    // We kept the first category as default
     private string Category = JournalConstants.EntryCategories[0];
 
-    // We stored mood + tags in simple lists
     private string PrimaryMood = "";
     private List<string> SecondaryMoods = new();
     private List<string> Tags = new();
 
-    // We displayed timestamps as text
-    private readonly string CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-    private readonly string UpdatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+    private bool hasTodayEntry;
+    private int todayId;
 
-    // We formatted date input value like HTML date needs
+    private DateTime createdAt;
+    private DateTime updatedAt;
+
+    private string statusText = "Loading...";
+
     private string TodayDateValue => DateTime.Now.ToString("yyyy-MM-dd");
+    private string CreatedAtText => createdAt == default ? "-" : createdAt.ToString("yyyy-MM-dd HH:mm");
+    private string UpdatedAtText => updatedAt == default ? "-" : updatedAt.ToString("yyyy-MM-dd HH:mm");
 
-    private void TogglePreview()
+    protected override async Task OnInitializedAsync()
     {
-        // We flipped preview on/off
-        ShowPreview = !ShowPreview;
+        Entries.DataChanged += Refresh;
+
+        await LoadTodayAsync();
     }
+
+    private async void Refresh()
+    {
+        await LoadTodayAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadTodayAsync()
+    {
+        statusText = "Loading...";
+        var today = DateTime.Now.Date;
+
+        var e = await Entries.GetByDateAsync(today);
+        if (e == null)
+        {
+            hasTodayEntry = false;
+            todayId = 0;
+
+            Title = "";
+            Content = "";
+            PrimaryMood = "";
+            SecondaryMoods = new();
+            Tags = new();
+
+            createdAt = default;
+            updatedAt = default;
+
+            statusText = "No entry for today yet.";
+            return;
+        }
+
+        hasTodayEntry = true;
+        todayId = e.Id;
+
+        Category = e.Category ?? JournalConstants.EntryCategories[0];
+        Title = e.Title ?? "";
+        Content = e.Markdown ?? "";
+
+        PrimaryMood = e.PrimaryMood ?? "";
+        SecondaryMoods = new List<string>();
+        if (!string.IsNullOrWhiteSpace(e.SecondaryMood1)) SecondaryMoods.Add(e.SecondaryMood1);
+        if (!string.IsNullOrWhiteSpace(e.SecondaryMood2)) SecondaryMoods.Add(e.SecondaryMood2);
+
+        Tags = (e.TagsCsv ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(t => t.Trim())
+            .Where(t => !string.IsNullOrWhiteSpace(t))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        createdAt = e.CreatedAt;
+        updatedAt = e.UpdatedAt;
+
+        statusText = "Loaded todays entry.";
+    }
+
+    private void TogglePreview() => ShowPreview = !ShowPreview;
 
     private string PreviewHtml
     {
         get
         {
-            // We made a simple preview (not full markdown, just basic safe text)
-            var text = Content ?? "";
+            var pipeline = new MarkdownPipelineBuilder()
+                .DisableHtml()
+                .UseAdvancedExtensions()
+                .Build();
 
-            // We escaped html so user text didn’t break UI
-            text = text.Replace("&", "&amp;");
-            text = text.Replace("<", "&lt;");
-            text = text.Replace(">", "&gt;");
-
-            // We converted new lines to <br/> for preview
-            text = text.Replace("\n", "<br/>");
-
-            return text;
+            return Markdown.ToHtml(Content ?? "", pipeline);
         }
+    }
+
+    private async Task SaveToday()
+    {
+        statusText = "Saving...";
+
+        await Entries.UpsertForDateAsync(
+            DateTime.Now.Date,
+            Category,
+            Title,
+            Content,
+            PrimaryMood,
+            SecondaryMoods,
+            Tags
+        );
+
+        statusText = "Saved.";
+    }
+
+    private async Task DeleteToday()
+    {
+        if (!hasTodayEntry || todayId <= 0) return;
+
+        statusText = "Deleting...";
+        await Entries.DeleteAsync(todayId);
+        statusText = "Deleted.";
+    }
+
+    public void Dispose()
+    {
+        Entries.DataChanged -= Refresh;
     }
 }
