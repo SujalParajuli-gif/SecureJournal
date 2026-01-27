@@ -1,12 +1,12 @@
-﻿@*layout UI for MainLayout *@
-
+﻿@namespace SecureJournal.Components.Layout
 @inherits LayoutComponentBase
+@using Microsoft.Maui.Storage
 
-<div class="app-shell @(isDark ? "theme-dark" : "")">
+<div class="@ShellClass">
     <Sidebar />
 
     <div class="app-main">
-        <TopBar IsDark="@isDark" OnToggleTheme="ToggleTheme" />
+        <TopBar IsDark="@isDark" OnToggleTheme="@ToggleTheme" />
 
         <div class="app-content">
             @Body
@@ -14,18 +14,30 @@
     </div>
 </div>
 
+@* added this block for global popup notifications (validation + PIN errors) *@
+<NotificationHost />
+
+@* added this block for PIN lock overlay *@
 <PinGate />
 
 @code {
     private bool isDark;
 
+    @* added this for building the shell class string safely *@
+    private string ShellClass => isDark ? "app-shell theme-dark" : "app-shell";
+
     protected override void OnInitialized()
     {
+        // loading saved theme value from preferences
         isDark = Preferences.Get("theme.dark", false);
     }
 
     private void ToggleTheme()
     {
+        // switching theme value
         isDark = !isDark;
+
+        // saving theme so it stays after restart
         Preferences.Set("theme.dark", isDark);
-    }}
+    }
+}
