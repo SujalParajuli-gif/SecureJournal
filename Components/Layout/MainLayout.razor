@@ -1,4 +1,6 @@
-﻿@inherits LayoutComponentBase
+﻿@* Purpose: layout UI for MainLayout *@
+
+@inherits LayoutComponentBase
 
 <div class="app-shell @(isDark ? "theme-dark" : "theme-light")">
     <Sidebar />
@@ -12,12 +14,19 @@
     </div>
 </div>
 
+<PinGate />
+
 @code {
-    // UI local theme toggle state
-    private bool isDark = false;
+    private bool isDark;
+
+    protected override void OnInitialized()
+    {
+        isDark = Preferences.Get("theme.dark", false);
+    }
 
     private void ToggleTheme()
     {
         isDark = !isDark;
+        Preferences.Set("theme.dark", isDark);
     }
 }
