@@ -170,7 +170,6 @@ body {
     border: 1px solid #e5e7eb;
     border-radius: 18px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-    /* small safety: keep big items (like calendar) inside card */
     overflow: hidden;
 }
 
@@ -178,21 +177,18 @@ body {
    GREETING IMAGE OVERLAY 
 ------------------------------ */
 .greeting {
-    position: relative; /* image is positioned relative to this card */
-    overflow: hidden; /* stops it from floating over other cards */
+    position: relative;
+    overflow: hidden;
     padding: 28px;
-    /* reserve space for image on the right */
     padding-right: 380px;
     min-height: 170px;
     display: flex;
     align-items: center;
 }
 
-/* The illustration container becomes a "floating card" */
 .greeting-illustration {
     position: relative;
     left: 448px;
-    /* keeping it inside the greeting card instead of escaping upwards */
     pointer-events: none;
     border-radius: 16px;
 }
@@ -204,10 +200,9 @@ body {
         display: block;
     }
 
-/* Greeting text sizes  */
 .greeting-title {
     font-size: 60px;
-    font-weight: 800; /* looks like extrabold */
+    font-weight: 800;
     margin: 0;
 }
 
@@ -279,19 +274,16 @@ body {
     align-items: flex-start;
 }
 
-    /* left section grows */
     .grid-dashboard > :first-child {
         flex: 1;
-        min-width: 0; /* prevents overflow when there are long inputs */
+        min-width: 0;
     }
 
-    /* right section stays like a fixed sidebar column */
     .grid-dashboard > :last-child {
-        width: 490px; /* you can tweak this: 380 / 420 / 460 */
+        width: 490px;
         flex-shrink: 0;
     }
 
-/* 2 cards side by side */
 .grid-2 {
     display: flex;
     gap: 16px;
@@ -302,7 +294,6 @@ body {
         min-width: 0;
     }
 
-/* 3 cards side by side */
 .grid-3 {
     display: flex;
     gap: 16px;
@@ -313,7 +304,6 @@ body {
         min-width: 0;
     }
 
-/* stats row (3 cards) */
 .stats-row {
     display: flex;
     gap: 16px;
@@ -324,7 +314,6 @@ body {
         min-width: 0;
     }
 
-/* when screen is small, we stack the layout */
 @media (max-width: 1100px) {
     .grid-dashboard {
         flex-direction: column;
@@ -338,15 +327,13 @@ body {
         flex-direction: column;
     }
 
-    /* on small screens, remove the reserved right padding for the image */
     .greeting {
         padding-right: 24px;
         min-height: auto;
     }
 
-    /* and making the image block behave nicely */
     .greeting-illustration {
-        position: static; /* puts it inside normal flow */
+        position: static;
         margin-top: 14px;
         width: fit-content;
     }
@@ -474,7 +461,7 @@ body {
     display: grid;
     grid-template-columns: repeat(7, 46px);
     gap: 10px;
-    justify-content: center; /* keeps the grid centered inside the card */
+    justify-content: center;
 }
 
 .calendar-head {
@@ -484,7 +471,7 @@ body {
 }
 
 .calendar-day {
-    width: 46px; /* match the grid column size */
+    width: 46px;
     height: 46px;
     position: relative;
     border-radius: 14px;
@@ -527,6 +514,103 @@ body {
 
 .page-title {
     padding: 8px 2px;
+}
+
+/* ---------------------------------------------------------
+   THEME-AWARE REUSABLE SURFACES (used by pages)
+---------------------------------------------------------- */
+.surface {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+}
+
+.surface-soft {
+    background: #f6f6f6;
+    border: 1px solid #e5e7eb;
+}
+
+.text-strong {
+    color: #0b0b0c;
+}
+
+.text-soft {
+    color: #6b7280;
+}
+
+.btn-primary {
+    background: #0b0b0c;
+    color: #ffffff;
+    border: 1px solid transparent;
+}
+
+    .btn-primary:hover {
+        background: #232325;
+    }
+
+.badge-primary {
+    background: #0b0b0c;
+    color: #ffffff;
+    border: 1px solid transparent;
+}
+
+/* ---------------------------------------------------------
+   DASHBOARD (moved from Dashboard.razor <style>)
+---------------------------------------------------------- */
+.dash-surface {
+    background: #ffffff;
+    border-color: rgb(245 245 245);
+}
+
+.dash-title {
+    color: rgb(0 0 0);
+}
+
+.dash-muted {
+    color: rgb(115 115 115);
+}
+
+.dash-soft-btn {
+    background: rgb(245 245 245);
+    color: rgb(0 0 0);
+}
+
+    .dash-soft-btn:hover {
+        background: rgb(229 229 229);
+    }
+
+.dash-pill {
+    background: rgb(245 245 245);
+    color: rgb(0 0 0);
+}
+
+    .dash-pill:hover {
+        background: rgb(229 229 229);
+    }
+
+/* ---------------------------------------------------------
+   STATCARD (moved from StatCard.razor <style>)
+---------------------------------------------------------- */
+.stat-surface {
+    background: #ffffff;
+    border-color: rgb(245 245 245);
+}
+
+.stat-icon {
+    background: rgb(250 250 250);
+    color: rgb(0 0 0);
+    border: 1px solid rgb(245 245 245);
+}
+
+.stat-number {
+    color: rgb(0 0 0);
+}
+
+.stat-label {
+    color: rgb(115 115 115);
+}
+
+.stat-kicker {
+    color: rgb(163 163 163);
 }
 
 /* -----------------------------
@@ -576,21 +660,22 @@ body {
         background: #121212;
         border-color: #27272a;
     }
-    /* Dark mode fix: icon buttons (calendar arrows, topbar icon buttons) */
+
+    /* Dark mode fix: icon buttons */
     .app-shell.theme-dark .icon-btn {
         background: #0b0b0c;
         border-color: #27272a;
         color: #f3f4f6;
     }
 
-    /* Dark mode fix: CreatedAt / UpdatedAt bar */
+    /* Dark mode fix: timestamps bar */
     .app-shell.theme-dark .timestamps {
         background: #0b0b0c;
         border-color: #27272a;
         color: #f3f4f6;
     }
 
-    /* Dark mode fix: selected calendar day was forced to white */
+    /* Dark mode fix: selected calendar day */
     .app-shell.theme-dark .calendar-day.selected {
         background: #121212;
         border-color: #f3f4f6;
@@ -601,25 +686,108 @@ body {
         color: #a1a1aa;
     }
 
-    /* Dark mode fix: date picker calendar icon (make the icon white) */
+    /* Dark mode fix: date picker icon */
     .app-shell.theme-dark input[type="date"] {
-        /* This tells the browser to use dark UI for date inputs */
         color-scheme: dark;
     }
 
         .app-shell.theme-dark input[type="date"]::-webkit-calendar-picker-indicator {
-            /* This inverts the default black icon and boosts brightness so it looks white */
             filter: invert(1) brightness(2);
             opacity: 1;
         }
 
-    .app-shell.theme-dark .topbar-search,
-    .app-shell.theme-dark .input {
+    /* Theme-aware surfaces (dark overrides) */
+    .app-shell.theme-dark .surface {
+        background: #121212;
+        border-color: #27272a;
+    }
+
+    .app-shell.theme-dark .surface-soft {
         background: #0b0b0c;
         border-color: #27272a;
+    }
+
+    .app-shell.theme-dark .text-strong {
         color: #f3f4f6;
     }
-/* StatCard: placing the icon on the right side of the number */
+
+    .app-shell.theme-dark .text-soft {
+        color: #a1a1aa;
+    }
+
+    .app-shell.theme-dark .btn-primary {
+        background: #0b0b0c;
+        color: #f3f4f6;
+        border-color: #27272a;
+    }
+
+        .app-shell.theme-dark .btn-primary:hover {
+            background: #141416;
+        }
+
+    .app-shell.theme-dark .badge-primary {
+        background: #0b0b0c;
+        color: #f3f4f6;
+        border-color: #27272a;
+    }
+
+    /* Dashboard dark overrides */
+    .app-shell.theme-dark .dash-surface {
+        background: rgba(255,255,255,0.06);
+        border-color: rgba(255,255,255,0.10);
+    }
+
+    .app-shell.theme-dark .dash-title {
+        color: rgba(255,255,255,0.92);
+    }
+
+    .app-shell.theme-dark .dash-muted {
+        color: rgba(255,255,255,0.60);
+    }
+
+    .app-shell.theme-dark .dash-soft-btn {
+        background: rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.92);
+    }
+
+        .app-shell.theme-dark .dash-soft-btn:hover {
+            background: rgba(255,255,255,0.12);
+        }
+
+    .app-shell.theme-dark .dash-pill {
+        background: rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.92);
+    }
+
+        .app-shell.theme-dark .dash-pill:hover {
+            background: rgba(255,255,255,0.12);
+        }
+
+    /* StatCard dark overrides */
+    .app-shell.theme-dark .stat-surface {
+        background: rgba(255,255,255,0.06);
+        border-color: rgba(255,255,255,0.10);
+    }
+
+    .app-shell.theme-dark .stat-icon {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.10);
+        color: rgba(255,255,255,0.92);
+    }
+
+    .app-shell.theme-dark .stat-number {
+        color: rgba(255,255,255,0.92);
+    }
+
+    .app-shell.theme-dark .stat-label {
+        color: rgba(255,255,255,0.60);
+    }
+
+    .app-shell.theme-dark .stat-kicker {
+        color: rgba(255,255,255,0.45);
+    }
+
+/* StatCard layout helper: icon on right side of number (kept from your file) */
 .stat-top {
     display: flex;
     align-items: center;
@@ -630,4 +798,10 @@ body {
 .stat-icon {
     font-size: 34px;
     line-height: 1;
+}
+/* highlight effect for focusing TodayEntryCard after clicking New Entry */
+.today-highlight {
+    outline: 2px solid rgba(99,102,241,0.45);
+    border-radius: 18px;
+    transition: outline 0.2s ease;
 }
