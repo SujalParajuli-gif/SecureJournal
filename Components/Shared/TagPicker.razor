@@ -1,3 +1,7 @@
+@using SecureJournal.Data.Helpers
+@using SecureJournal.Data.Services
+@inject NotificationService Notifier
+
 <div class="card p-4">
     <h3 class="font-semibold text-lg">Tags</h3>
     <p class="muted text-sm mt-1">Choose from prebuilt tags or add custom tags.</p>
@@ -6,7 +10,11 @@
         <label class="label">Add Custom Tag</label>
 
         <div class="row">
-            <input class="input" placeholder="Type tag and press Add" @bind="customTag" />
+            @* Student comment: Alphabetic-only validation for custom tags *@
+            <input class="input"
+                   placeholder="Type tag and press Add"
+                   value="@customTag"
+                   @oninput="OnCustomTagInput" />
             <button class="btn-dark" @onclick="AddCustomTag">Add</button>
         </div>
 
@@ -57,10 +65,47 @@
     private string customTag = "";
     private string selectedPrebuilt = "";
 
+    // Student comment: Avoid showing the same popup for every keypress.
+    private bool _tagErrorShown;
+
+    private void OnCustomTagInput(ChangeEventArgs e)
+    {
+        var raw = (e.Value?.ToString() ?? "");
+
+        if (!InputValidation.IsAlphabeticWithSpaces(raw))
+        {
+            customTag = InputValidation.KeepOnlyLettersAndSpaces(raw);
+
+            if (!_tagErrorShown)
+            {
+                _tagErrorShown = true;
+                Notifier.ShowError(
+                    "Invalid input",
+                    "Only alphabetic characters are allowed in Tags (letters and spaces only)."
+                );
+            }
+        }
+        else
+        {
+            customTag = raw;
+            _tagErrorShown = false;
+        }
+    }
+
     private async Task AddCustomTag()
     {
         var t = (customTag ?? "").Trim();
         if (string.IsNullOrWhiteSpace(t)) return;
+
+        // Student comment: final validation check before adding.
+        if (!InputValidation.IsAlphabeticWithSpaces(t))
+        {
+            Notifier.ShowError(
+                "Invalid tag",
+                "A tag must contain only alphabetic characters (letters and spaces)."
+            );
+            return;
+        }
 
         if (!Tags.Any(x => string.Equals(x, t, StringComparison.OrdinalIgnoreCase)))
             Tags.Add(t);
