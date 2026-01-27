@@ -1,62 +1,69 @@
 ﻿@page "/streak"
 @inject JournalEntryService Entries
+@implements IDisposable
 
 <div class="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
-    @* Hero Header: Matches the "Hello User" card style *@
-    <div class="bg-white rounded-[2rem] p-8 md:p-12 shadow-sm border border-neutral-100 flex flex-col md:flex-row justify-between items-center gap-8">
+    @* Top section banner *@
+    <div class="surface rounded-[2rem] p-8 md:p-12 shadow-sm flex flex-col md:flex-row justify-between items-center gap-8">
         <div class="text-center md:text-left">
-            <h1 class="text-4xl md:text-5xl font-bold text-black tracking-tight">Your Progress</h1>
-            <p class="text-neutral-500 mt-3 text-lg">Consistency is the bridge between goals and accomplishment.</p>
+            <h1 class="text-strong text-4xl md:text-5xl font-bold tracking-tight">Your Progress</h1>
+            <p class="text-soft mt-3 text-lg">Consistency is the bridge between goals and accomplishment.</p>
+
             <div class="mt-6">
-                <button class="bg-black text-white px-8 py-3 rounded-xl font-semibold hover:bg-neutral-800 transition-all active:scale-95">
+                @* Navigation button to analytics page *@
+                <a href="/analytics" class="btn-primary px-8 py-3 rounded-xl font-semibold transition-all active:scale-95 inline-flex items-center gap-2">
+                    <span class="material-icons text-base">insights</span>
                     View Insights
-                </button>
+                </a>
             </div>
         </div>
 
-        @* Minimalist Fire Icon Container *@
-        <div class="bg-neutral-50 p-10 rounded-[2.5rem] border border-neutral-100 relative group">
-            <span class="material-icons text-7xl text-black transition-transform group-hover:scale-110 duration-300">local_fire_department</span>
-            <div class="absolute -top-2 -right-2 bg-black text-white text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">
+        @* Icon highlight card *@
+        <div class="surface-soft p-10 rounded-[2.5rem] relative group">
+            <span class="material-icons text-7xl text-strong transition-transform group-hover:scale-110 duration-300">
+                local_fire_department
+            </span>
+
+            @* Status badge *@
+            <div class="badge-primary absolute -top-2 -right-2 text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase">
                 Active
             </div>
         </div>
     </div>
 
-    @* Stats Grid *@
+    @* Streak stats cards *@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard Number="@current"
-                  Label="Current streak"
-                  Icon="local_fire_department"
-                  IsPrimary="true" />
-
-        <StatCard Number="@longest"
-                  Label="Longest streak"
-                  Icon="fitness_center" />
-
-        <StatCard Number="@missed"
-                  Label="Missed days"
-                  Icon="event_busy" />
+        <StatCard Number="@current" Label="Current streak" Icon="local_fire_department" IsPrimary="true" />
+        <StatCard Number="@longest" Label="Longest streak" Icon="fitness_center" />
+        <StatCard Number="@missed" Label="Missed days" Icon="event_busy" />
     </div>
 </div>
 
 @code {
+    // Current streak value shown on UI
     private string current = "0";
+
+    // Longest streak value shown on UI
     private string longest = "0";
+
+    // Missed days value shown on UI
     private string missed = "0";
 
     protected override async Task OnInitializedAsync()
     {
+        // DataChanged event refreshes the stats automatically
         Entries.DataChanged += Refresh;
         await LoadAsync();
     }
 
+    // Refresh handler for database updates
     private async void Refresh()
     {
         await LoadAsync();
         await InvokeAsync(StateHasChanged);
     }
 
+    // Loads streak stats from the service
     private async Task LoadAsync()
     {
         var (c, l, m) = await Entries.GetStreakStatsAsync();
@@ -67,6 +74,7 @@
 
     public void Dispose()
     {
+        // Event unsubscription to avoid memory leaks
         Entries.DataChanged -= Refresh;
     }
 }
