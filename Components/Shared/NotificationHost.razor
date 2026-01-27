@@ -1,0 +1,102 @@
+@namespace SecureJournal.Components.Shared
+@using SecureJournal.Data.Services
+@inject NotificationService Notifier
+@implements IDisposable
+
+@* Student comment:
+   Global popup UI (minimal, does not change your design).
+   Used for validation errors and PIN errors. *@
+
+@if (_active != null)
+{
+    <div class="fixed inset-0 z-[10000] pointer-events-none">
+        <div class="absolute top-6 right-6 w-[360px] max-w-[calc(100vw-2rem)] pointer-events-auto">
+            <div class="rounded-2xl border border-black/10 bg-white/95 backdrop-blur shadow-xl p-4">
+                <div class="flex-between">
+                    <div class="font-bold text-base">@_active.Title</div>
+                    <button class="icon-btn" @onclick="Dismiss" title="Close">
+                        <span class="material-icons text-base">close</span>
+                    </button>
+                </div>
+
+                <div class="mt-2 text-sm text-neutral-700">
+                    @_active.Message
+                </div>
+
+                <div class="mt-3 text-xs @(GetTypeClass())">
+                    @GetTypeLabel()
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private AppNotification? _active;
+    private CancellationTokenSource? _cts;
+
+    protected override void OnInitialized()
+    {
+        Notifier.OnNotify += Show;
+    }
+
+    private void Show(AppNotification n)
+    {
+        _active = n;
+
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(3200, token);
+                await InvokeAsync(() =>
+                {
+                    _active = null;
+                    StateHasChanged();
+                });
+            }
+            catch { }
+        });
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void Dismiss()
+    {
+        _cts?.Cancel();
+        _active = null;
+        StateHasChanged();
+    }
+
+    private string GetTypeLabel()
+    {
+        if (_active == null) return "";
+        return _active.Type switch
+        {
+            NotificationType.Error => "Error",
+            NotificationType.Success => "Success",
+            _ => "Info"
+        };
+    }
+
+    private string GetTypeClass()
+    {
+        if (_active == null) return "text-neutral-500";
+        return _active.Type switch
+        {
+            NotificationType.Error => "text-red-600",
+            NotificationType.Success => "text-green-600",
+            _ => "text-neutral-500"
+        };
+    }
+
+    public void Dispose()
+    {
+        Notifier.OnNotify -= Show;
+        _cts?.Cancel();
+    }
+}
