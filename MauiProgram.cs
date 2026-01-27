@@ -1,4 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using SecureJournal.Data;
+using SecureJournal.Data.Services;
+
 
 namespace SecureJournal
 {
@@ -7,6 +10,7 @@ namespace SecureJournal
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
+
             builder
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
@@ -17,9 +21,16 @@ namespace SecureJournal
             builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG
-    		builder.Services.AddBlazorWebViewDeveloperTools();
-    		builder.Logging.AddDebug();
+            builder.Services.AddBlazorWebViewDeveloperTools();
+            builder.Logging.AddDebug();
 #endif
+
+            // Database + services (same “simple services + events” pattern as reference)
+            builder.Services.AddSingleton<AppSqliteDb>();
+            builder.Services.AddSingleton<JournalEntryService>();
+            builder.Services.AddSingleton<CalendarStateService>();
+            builder.Services.AddSingleton<PinLockService>();
+            builder.Services.AddSingleton<PdfExportService>();
 
             return builder.Build();
         }
