@@ -1,36 +1,50 @@
- <div class="card greeting">
+@* Shared/GreetingCard.razor *@
+@inject NavigationManager Nav
+@inject IJSRuntime JS
 
+@* greeting card for dashboard home *@
+@* new entry navigates to dashboard and scrolls to TodayEntryCard section *@
+@* open calendar navigates to calendar page *@
+
+<div class="card greeting">
     <div>
-
         <h1 class="greeting-title">Hello @Name!</h1>
-
         <p class="greeting-subtitle muted">It’s good to see you again.</p>
 
-
-
         <div class="mt-5 inline-flex gap-2">
+            @* navigates to dashboard and triggers scroll-to-today-entry *@
+            <button class="btn-dark" @onclick="GoToTodayEntry">New Entry</button>
 
-            <button class="btn-dark">New Entry</button>
-
-            <button class="btn-light">Open Calendar</button>
-
+            @* navigates to calendar page *@
+            <a class="btn-light" href="/calendar">Open Calendar</a>
         </div>
-
     </div>
-
 
     <div class="greeting-illustration">
-
         <img src="images/GuyWaving.png" alt="Wave" />
-
     </div>
-
 </div>
 
-
 @code {
-
     [Parameter] public string Name { get; set; } = "Sujal";
 
-}
+    // navigation + smooth scroll trigger for TodayEntryCard
+    private async Task GoToTodayEntry()
+    {
+        // moves user to dashboard with a hash target
+        Nav.NavigateTo("/#today-entry", forceLoad: false);
 
+        // small delay so the dashboard DOM exists before scrolling
+        await Task.Delay(80);
+
+        try
+        {
+            await JS.InvokeVoidAsync("uiHelpers.scrollToId", "today-entry");
+            await JS.InvokeVoidAsync("uiHelpers.flashHighlight", "today-entry");
+        }
+        catch
+        {
+            // JS optional failure: page should still work without crashing
+        }
+    }
+}
