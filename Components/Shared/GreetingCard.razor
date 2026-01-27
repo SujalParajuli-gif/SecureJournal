@@ -1,20 +1,36 @@
-<div class="card greeting">
+ <div class="card greeting">
+
     <div>
+
         <h1 class="greeting-title">Hello @Name!</h1>
-<p class="greeting-subtitle muted">It’s good to see you again.</p>
+
+        <p class="greeting-subtitle muted">It’s good to see you again.</p>
+
 
 
         <div class="mt-5 inline-flex gap-2">
+
             <button class="btn-dark">New Entry</button>
+
             <button class="btn-light">Open Calendar</button>
+
         </div>
+
     </div>
+
 
     <div class="greeting-illustration">
+
         <img src="images/GuyWaving.png" alt="Wave" />
+
     </div>
+
 </div>
 
+
 @code {
+
     [Parameter] public string Name { get; set; } = "Sujal";
+
 }
+
