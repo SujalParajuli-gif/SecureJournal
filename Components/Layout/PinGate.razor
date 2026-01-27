@@ -1,0 +1,160 @@
+@using SecureJournal.Data.Services
+@inject PinLockService PinLock
+@implements IDisposable
+
+@if (!PinLock.IsUnlocked)
+{
+    <div class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md">
+        <div class="w-[26rem] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/10 bg-neutral-900/80 p-7 shadow-2xl">
+            <div class="text-center">
+                <div class="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-white/5">
+                    <span class="material-icons text-white/90">lock</span>
+                </div>
+
+                <h1 class="text-2xl font-semibold text-white">Enter PIN</h1>
+                <p class="mt-1 text-sm text-white/60">This app is locked. Enter your 6-digit PIN.</p>
+            </div>
+
+            <div class="mt-6 flex justify-center gap-2">
+                @for (int i = 0; i < 6; i++)
+                {
+                    var filled = i < _pin.Length;
+
+                    <div class="h-12 w-10 rounded-xl border border-white/10 bg-white/5 grid place-items-center">
+                        <div class="h-3 w-3 rounded-full @(filled ? "bg-white" : "bg-white/20")"></div>
+                    </div>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_error))
+            {
+                <div class="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-center text-sm text-red-200">
+                    @_error
+                </div>
+            }
+            else
+            {
+                <div class="mt-5 h-5 text-center text-xs text-white/40">
+                    @if (_isBusy)
+                    {
+                        <span>Checking…</span>
+                    }
+                </div>
+            }
+
+            <div class="mt-5 grid grid-cols-3 gap-3">
+                @foreach (var d in _digits)
+                {
+                    <button disabled="@_isBusy"
+                            @onclick="@(() => AddDigit(d))"
+                            class="h-12 rounded-xl border border-white/10 bg-white/5 text-white font-semibold hover:bg-white/10 active:scale-[0.98] disabled:opacity-60">
+                        @d
+                    </button>
+                }
+
+                <button disabled="@_isBusy"
+                        @onclick="Clear"
+                        class="h-12 rounded-xl border border-white/10 bg-white/5 text-white/80 font-medium hover:bg-white/10 active:scale-[0.98] disabled:opacity-60">
+                    Clear
+                </button>
+
+                <button disabled="@_isBusy"
+                        @onclick="@(() => AddDigit("0"))"
+                        class="h-12 rounded-xl border border-white/10 bg-white/5 text-white font-semibold hover:bg-white/10 active:scale-[0.98] disabled:opacity-60">
+                    0
+                </button>
+
+                <button disabled="@_isBusy"
+                        @onclick="Backspace"
+                        class="h-12 rounded-xl border border-white/10 bg-white/5 text-white/80 font-medium hover:bg-white/10 active:scale-[0.98] disabled:opacity-60">
+                    <span class="material-icons text-base">backspace</span>
+                </button>
+            </div>
+
+            <div class="mt-6 text-center text-xs text-white/35">
+                SecureJournal • Protected Access
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string _pin = "";
+    private string _error = "";
+    private bool _isBusy;
+
+    private static readonly string[] _digits = new[] { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+
+    protected override void OnInitialized()
+    {
+        PinLock.LockStateChanged += OnLockChanged;
+    }
+
+    private void OnLockChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void AddDigit(string d)
+    {
+        if (_isBusy)
+            return;
+
+        if (_pin.Length >= 6)
+            return;
+
+        _pin += d;
+        _error = "";
+
+        if (_pin.Length == 6)
+            _ = ValidateAsync();
+    }
+
+    private void Backspace()
+    {
+        if (_isBusy)
+            return;
+
+        if (_pin.Length == 0)
+            return;
+
+        _pin = _pin.Substring(0, _pin.Length - 1);
+        _error = "";
+    }
+
+    private void Clear()
+    {
+        if (_isBusy)
+            return;
+
+        _pin = "";
+        _error = "";
+    }
+
+    private async Task ValidateAsync()
+    {
+        _isBusy = true;
+        _error = "";
+
+        var ok = PinLock.TryUnlock(_pin);
+        if (ok)
+        {
+            _isBusy = false;
+            return;
+        }
+
+        _error = "Incorrect PIN. Try again.";
+        StateHasChanged();
+
+        await Task.Delay(700);
+
+        _isBusy = false;
+        Clear();
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        PinLock.LockStateChanged -= OnLockChanged;
+    }
+}
