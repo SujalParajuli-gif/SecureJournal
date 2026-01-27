@@ -1,15 +1,18 @@
+@inject NavigationManager Nav
+
 <div class="topbar">
     <div class="topbar-search">
         <span class="material-icons muted">search</span>
-        <input class="search-input" placeholder="Search entries..." />
+        <input class="search-input" placeholder="Search entries..."
+               @bind="searchText"
+               @onkeydown="SearchKeyDown" />
     </div>
 
     <div class="topbar-actions">
-        <button class="icon-btn" title="Toggle Theme" @onclick="OnToggleTheme">
+        <button class="icon-btn" title="Toggle Theme" @onclick="ToggleClicked">
             <span class="material-icons">@((IsDark) ? "dark_mode" : "light_mode")</span>
         </button>
 
-      
         <div class="avatar" title="Profile">
             User
         </div>
@@ -19,4 +22,21 @@
 @code {
     [Parameter] public bool IsDark { get; set; }
     [Parameter] public EventCallback OnToggleTheme { get; set; }
+
+    private string searchText = "";
+
+    private async Task ToggleClicked()
+    {
+        await OnToggleTheme.InvokeAsync();
+    }
+
+    private void SearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            var q = (searchText ?? "").Trim();
+            if (q.Length == 0) Nav.NavigateTo("/search");
+            else Nav.NavigateTo($"/search?q={Uri.EscapeDataString(q)}");
+        }
+    }
 }
