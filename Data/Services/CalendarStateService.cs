@@ -1,6 +1,6 @@
 ﻿namespace SecureJournal.Data.Services
 {
-    // Simple “selected date” state like reference CalendarFilterService (renamed)
+    // Simple “selected date” state like reference CalendarFilterService 
     public class CalendarStateService
     {
         public event Action? SelectedDateChanged;
