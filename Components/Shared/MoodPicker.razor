@@ -1,86 +1,137 @@
-<div class="card p-4">
-    <h3 class="font-semibold text-lg">Mood</h3>
-    <p class="muted text-sm mt-1">Pick 1 primary mood and up to 2 secondary moods (UI-only).</p>
-
-    <div class="grid-2 mt-4">
+<div class="card p-8">
+    <div class="flex justify-between items-start mb-6">
         <div>
-            <label class="label">Primary Mood (Required)</label>
-
-            @* We used dropdown for primary mood *@
-            <select class="input" @bind="PrimaryMood">
-                <option value="">Select primary mood...</option>
-                @foreach (var group in JournalConstants.MoodGroups)
-                {
-                    <optgroup label="@group.Key">
-                        @foreach (var mood in group.Value)
-                        {
-                            <option value="@mood">@mood</option>
-                        }
-                    </optgroup>
-                }
-            </select>
+            <h3 class="font-bold text-xl">Mood</h3>
+            <p class="muted text-sm mt-1">Pick 1 primary mood and up to 2 secondary moods.</p>
         </div>
+        @if (!string.IsNullOrEmpty(PrimaryMood))
+        {
+            <div class="btn-dark px-4 py-1.5 rounded-full text-xs uppercase tracking-widest">
+                @PrimaryMood
+            </div>
+        }
+    </div>
 
-        <div>
-            <label class="label">Secondary Moods (Optional: max 2)</label>
+    @* Symmetric 50/50 split using minmax(0, 1fr) to prevent content-based stretching *@
+    <div class="grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; width: 100%;">
+        @* Left: Primary Mood Selection *@
+        <div class="flex flex-col space-y-4" style="width: 100%;">
+            <div class="flex justify-between items-center">
+                <label class="label uppercase tracking-wider font-bold text-[10px]">Primary Mood (Required)</label>
+                @if (showPrimaryError)
+                {
+                    <span class="text-[10px] font-bold text-red-500 uppercase tracking-widest">Required</span>
+                }
+            </div>
 
-            <div class="secondary-box">
+            <div class="secondary-box p-4 @(showPrimaryError ? "border-red-500/50" : "")" style="min-height: 400px; width: 100%;">
                 @foreach (var group in JournalConstants.MoodGroups)
                 {
-                    <div class="secondary-group">
-                        <div class="secondary-title">@group.Key</div>
-
-                        <div class="secondary-list">
+                    <div class="mb-4">
+                        <div class="secondary-title opacity-50">@group.Key</div>
+                        <div class="flex flex-wrap gap-2 mt-2">
                             @foreach (var mood in group.Value)
                             {
-                                bool isChecked = SecondaryMoods.Contains(mood);
-
-                                <label class="chip-check">
-                                    <input type="checkbox"
-                                           checked="@isChecked"
-                                           @onchange="(e) => SecondaryChanged(mood, e)" />
-                                    <span>@mood</span>
-                                </label>
+                                <button type="button"
+                                        class="chip @(PrimaryMood == mood ? "btn-dark" : "btn-light")"
+                                        @onclick="() => SetPrimary(mood)">
+                                    @mood
+                                </button>
                             }
                         </div>
                     </div>
                 }
             </div>
+        </div>
 
-            <div class="muted text-xs mt-2">
-                Selected: @(SecondaryMoods.Count)/2
+        @* Right: Secondary Mood Selection *@
+        <div class="flex flex-col space-y-4" style="width: 100%;">
+            <div class="flex justify-between items-end">
+                <label class="label uppercase tracking-wider font-bold text-[10px]">Secondary Moods</label>
+                <div class="@(showLimitError ? "text-red-500" : "muted") text-[10px] font-bold transition-colors">
+                    @SecondaryMoods.Count / 2 @(showLimitError ? "MAX REACHED" : "SELECTED")
+                </div>
+            </div>
+
+            <div class="secondary-box p-4" style="min-height: 400px; width: 100%;">
+                @foreach (var group in JournalConstants.MoodGroups)
+                {
+                    <div class="mb-4">
+                        <div class="secondary-title opacity-50">@group.Key</div>
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            @foreach (var mood in group.Value)
+                            {
+                                bool isChecked = SecondaryMoods.Contains(mood);
+                                bool isPrimary = PrimaryMood == mood;
+
+                                <button type="button"
+                                        disabled="@isPrimary"
+                                        class="chip-check @(isChecked ? "btn-dark" : "btn-light") @(isPrimary ? "opacity-20 cursor-not-allowed" : "")"
+                                        @onclick="() => ToggleSecondary(mood)">
+                                    @if (isChecked)
+                                    {
+                                        <span class="material-icons text-xs">done</span>
+                                    }
+                                    <span>@mood</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     </div>
 </div>
 
 @code {
-    [Parameter] public string PrimaryMood { get; set; } = ""; // We stored primary mood here
-    [Parameter] public List<string> SecondaryMoods { get; set; } = new(); // We stored secondary moods here
+    [Parameter] public string PrimaryMood { get; set; } = "";
+    [Parameter] public EventCallback<string> PrimaryMoodChanged { get; set; }
 
-    private void SecondaryChanged(string mood, ChangeEventArgs e)
+    [Parameter] public List<string> SecondaryMoods { get; set; } = new List<string>();
+    [Parameter] public EventCallback<List<string>> SecondaryMoodsChanged { get; set; }
+
+    private bool showLimitError = false;
+    private bool showPrimaryError = false;
+
+    private async Task SetPrimary(string mood)
     {
-        // We read checkbox value safely
-        bool isChecked = false;
-
-        if (e.Value is bool b) isChecked = b;
-        else if (e.Value is string s && bool.TryParse(s, out var parsed)) isChecked = parsed;
-
-        ToggleSecondary(mood, isChecked);
+        showPrimaryError = false;
+        PrimaryMood = mood;
+        if (SecondaryMoods.Contains(mood))
+        {
+            SecondaryMoods.Remove(mood);
+            await SecondaryMoodsChanged.InvokeAsync(SecondaryMoods);
+        }
+        await PrimaryMoodChanged.InvokeAsync(PrimaryMood);
     }
 
-    private void ToggleSecondary(string mood, bool isChecked)
+    private async Task ToggleSecondary(string mood)
     {
-        if (isChecked)
+        if (SecondaryMoods.Contains(mood))
         {
-            // We allowed maximum 2 secondary moods 
-            if (!SecondaryMoods.Contains(mood) && SecondaryMoods.Count < 2)
-                SecondaryMoods.Add(mood);
+            SecondaryMoods.Remove(mood);
+            showLimitError = false;
+        }
+        else if (SecondaryMoods.Count < 2)
+        {
+            SecondaryMoods.Add(mood);
+            showLimitError = false;
         }
         else
         {
-            // We removed it when unchecked
-            SecondaryMoods.Remove(mood);
+            showLimitError = true;
+            StateHasChanged();
+            await Task.Delay(2000);
+            showLimitError = false;
         }
+
+        await SecondaryMoodsChanged.InvokeAsync(SecondaryMoods);
+    }
+
+    public bool Validate()
+    {
+        showPrimaryError = string.IsNullOrEmpty(PrimaryMood);
+        StateHasChanged();
+        return !showPrimaryError;
     }
 }
