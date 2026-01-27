@@ -1,9 +1,27 @@
-<div class="card stat">
-    <div class="stat-number">@Number</div>
-    <div class="muted">@Label</div>
+<div class="bg-white border border-neutral-100 p-8 rounded-[2.5rem] shadow-sm hover:border-black/20 transition-all flex flex-col justify-between h-48 relative overflow-hidden group">
+    <div class="flex items-center justify-between relative z-10">
+        <div class="p-3.5 rounded-2xl transition-all @(IsPrimary ? "bg-black text-white shadow-lg shadow-black/10" : "bg-neutral-50 text-black border border-neutral-100 group-hover:bg-neutral-100")">
+            @if (!string.IsNullOrWhiteSpace(Icon))
+            {
+                <span class="material-icons text-2xl">@Icon</span>
+            }
+        </div>
+
+        @if (IsPrimary)
+        {
+            <span class="text-[9px] font-black uppercase tracking-[0.25em] text-neutral-400">Activity</span>
+        }
+    </div>
+
+    <div class="relative z-10">
+        <h2 class="text-5xl font-bold text-black tracking-tighter">@Number</h2>
+        <p class="text-neutral-500 font-bold text-sm mt-1 uppercase tracking-wide">@Label</p>
+    </div>
 </div>
 
 @code {
     [Parameter] public string Number { get; set; } = "0";
     [Parameter] public string Label { get; set; } = "Label";
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public bool IsPrimary { get; set; } = false;
 }
