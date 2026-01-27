@@ -1,2 +1,16 @@
 @page "/settings"
+@inject PinLockService PinLock
 
+<div class="card p-6">
+    <h1 class="text-2xl font-bold">Settings</h1>
+    <p class="muted mt-2">Basic app controls.</p>
+
+    <div class="card p-5 mt-6">
+        <div class="font-semibold">Security</div>
+        <div class="muted mt-2">Status: @(PinLock.IsUnlocked ? "Unlocked" : "Locked")</div>
+
+        <div class="mt-4 row">
+            <button class="btn-danger" @onclick="() => PinLock.Lock()">Lock now</button>
+        </div>
+    </div>
+</div>
