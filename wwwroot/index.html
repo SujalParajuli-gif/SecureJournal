@@ -8,13 +8,21 @@
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="js/themeHelper.js"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
 
     <link href="css/app.css" rel="stylesheet" />
 </head>
 <body>
+
     <div id="app">Loading...</div>
+
+    <!-- We loaded helper first so Blazor could call it -->
+    <script src="js/themeHelper.js"></script>
+
+    <!-- We kept Blazor script after helper -->
     <script src="_framework/blazor.webview.js"></script>
+
 </body>
 </html>
