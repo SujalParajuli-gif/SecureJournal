@@ -1,17 +1,16 @@
 <div class="card p-4">
     <h3 class="font-semibold text-lg">Tags</h3>
-    <p class="muted text-sm mt-1">Choose from prebuilt tags or add custom tags (UI-only).</p>
+    <p class="muted text-sm mt-1">Choose from prebuilt tags or add custom tags.</p>
 
     <div class="mt-4">
         <label class="label">Add Custom Tag</label>
 
         <div class="row">
-            @* We typed custom tag here *@
             <input class="input" placeholder="Type tag and press Add" @bind="customTag" />
             <button class="btn-dark" @onclick="AddCustomTag">Add</button>
         </div>
 
-        <div class="muted text-xs mt-2">Example: “Gym”, “Exam”, “Project”.</div>
+        <div class="muted text-xs mt-2">Example: Gym, Exam, Project.</div>
     </div>
 
     <div class="mt-4">
@@ -52,40 +51,38 @@
 </div>
 
 @code {
-    [Parameter] public List<string> Tags { get; set; } = new(); // We stored selected tags here
+    [Parameter] public List<string> Tags { get; set; } = new();
+    [Parameter] public EventCallback<List<string>> TagsChanged { get; set; }
 
-    private string customTag = "";        // We kept input text here
-    private string selectedPrebuilt = ""; // We kept dropdown value here
+    private string customTag = "";
+    private string selectedPrebuilt = "";
 
-    private void AddCustomTag()
+    private async Task AddCustomTag()
     {
-        // We cleaned the tag text first
         var t = (customTag ?? "").Trim();
         if (string.IsNullOrWhiteSpace(t)) return;
 
-        // We prevented duplicates (case-insensitive)
         if (!Tags.Any(x => string.Equals(x, t, StringComparison.OrdinalIgnoreCase)))
             Tags.Add(t);
 
-        // We cleared the input after adding
         customTag = "";
+        await TagsChanged.InvokeAsync(Tags);
     }
 
-    private void AddPrebuiltTag()
+    private async Task AddPrebuiltTag()
     {
         if (string.IsNullOrWhiteSpace(selectedPrebuilt)) return;
 
-        // We prevented duplicates
         if (!Tags.Any(x => string.Equals(x, selectedPrebuilt, StringComparison.OrdinalIgnoreCase)))
             Tags.Add(selectedPrebuilt);
 
-        // We cleared dropdown after adding
         selectedPrebuilt = "";
+        await TagsChanged.InvokeAsync(Tags);
     }
 
-    private void RemoveTag(string t)
+    private async Task RemoveTag(string t)
     {
-        // We removed the clicked tag
         Tags.Remove(t);
+        await TagsChanged.InvokeAsync(Tags);
     }
 }
