@@ -1,5 +1,6 @@
 @using SecureJournal.Data.Services
 @inject PinLockService PinLock
+@inject NotificationService Notifier
 @implements IDisposable
 
 @if (!PinLock.IsUnlocked)
@@ -37,7 +38,8 @@
                 <div class="mt-5 h-5 text-center text-xs text-white/40">
                     @if (_isBusy)
                     {
-                        <span>Checking…</span>
+                        @* added this text while the PIN is being checked *@
+                        <span>Checking...</span>
                     }
                 </div>
             }
@@ -87,6 +89,7 @@
 
     protected override void OnInitialized()
     {
+        // added this so the overlay refreshes when lock state changes
         PinLock.LockStateChanged += OnLockChanged;
     }
 
@@ -144,6 +147,12 @@
         }
 
         _error = "Incorrect PIN. Try again.";
+
+        // added this to show a popup notification for wrong PIN
+        Notifier.ShowError(
+            "Incorrect PIN",
+            "The PIN you entered is incorrect. For your security, please try again."
+        );
         StateHasChanged();
 
         await Task.Delay(700);
@@ -155,6 +164,7 @@
 
     public void Dispose()
     {
+        // removing event subscription to avoid memory leaks
         PinLock.LockStateChanged -= OnLockChanged;
     }
 }
