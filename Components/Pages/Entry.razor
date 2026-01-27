@@ -1,0 +1,37 @@
+@page "/entry/{Id:int}"
+@inject JournalEntryService Entries
+
+<div class="card p-6">
+    <h1 class="text-2xl font-bold">Entry</h1>
+
+    @if (entry == null)
+    {
+        <div class="muted mt-4">Entry not found.</div>
+    }
+    else
+    {
+        <div class="mt-4">
+            <div class="font-semibold">@entry.Title</div>
+            <div class="muted text-sm">@entry.EntryDate.ToString("yyyy-MM-dd") • @entry.Category</div>
+
+            <div class="mt-4">
+                <div class="muted text-sm">Primary mood: @(string.IsNullOrWhiteSpace(entry.PrimaryMood) ? "-" : entry.PrimaryMood)</div>
+                <div class="muted text-sm">Tags: @(string.IsNullOrWhiteSpace(entry.TagsCsv) ? "-" : entry.TagsCsv)</div>
+            </div>
+
+            <div class="mt-5">
+                <a class="btn-light" href="/timeline">Back to Timeline</a>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private JournalEntry? entry;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        entry = await Entries.GetByIdAsync(Id);
+    }
+}
