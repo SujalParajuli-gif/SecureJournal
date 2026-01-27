@@ -1,8 +1,8 @@
-﻿@* Purpose: layout UI for MainLayout *@
+﻿@*layout UI for MainLayout *@
 
 @inherits LayoutComponentBase
 
-<div class="app-shell @(isDark ? "theme-dark" : "theme-light")">
+<div class="app-shell @(isDark ? "theme-dark" : "")">
     <Sidebar />
 
     <div class="app-main">
@@ -28,5 +28,4 @@
     {
         isDark = !isDark;
         Preferences.Set("theme.dark", isDark);
-    }
-}
+    }}
