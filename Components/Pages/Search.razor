@@ -1,3 +1,201 @@
+﻿@*page UI for Search & Filter and exporting results *@
+
 @page "/search"
+@inject JournalEntryService Entries
+@inject PdfExportService Pdf
+@using Microsoft.AspNetCore.Components.Forms
 
+<div class="card p-6">
+    <h1 class="text-2xl font-bold">Search & Filter</h1>
+    <p class="muted mt-2">Combine filters and export results by date range.</p>
 
+    <div class="grid-2 mt-6">
+        <div>
+            @* Creating a text input for searching by title/content *@
+            <label class="label">Text</label>
+            <input class="input" @bind="text" placeholder="Search title or content..." />
+        </div>
+
+        <div>
+            @* Creating a dropdown for filtering by primary mood *@
+            <label class="label">Primary Mood</label>
+            <select class="input" @bind="mood">
+                <option value="">Any mood</option>
+                @foreach (var m in allPrimaryMoods)
+                {
+                    <option value="@m">@m</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2 mt-4">
+        <div>
+            @* Creating a date picker for the start date of the range *@
+            <label class="label">From</label>
+            <InputDate class="input" TValue="DateOnly?" @bind-Value="fromDate" />
+        </div>
+        <div>
+            @* Creating a date picker for the end date of the range *@
+            <label class="label">To</label>
+            <InputDate class="input" TValue="DateOnly?" @bind-Value="toDate" />
+        </div>
+    </div>
+
+    <div class="mt-4">
+        @* Creating a dropdown for filtering by tag *@
+        <label class="label">Tag</label>
+        <select class="input" @bind="tag">
+            <option value="">Any tag</option>
+            @foreach (var t in allTags)
+            {
+                <option value="@t">@t</option>
+            }
+        </select>
+    </div>
+
+    <div class="row mt-5">
+        @* Creating buttons to run search and clear filters *@
+        <button class="btn-dark" @onclick="RunSearch">Search</button>
+        <button class="btn-light" @onclick="Clear">Clear</button>
+    </div>
+
+    <div class="card p-5 mt-6">
+        <div class="flex-between">
+            <div class="font-semibold">Results (@results.Count)</div>
+            @* Creating a button to export the current date range results *@
+            <button class="btn-light" @onclick="ExportRange">Export PDF (date range)</button>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(message))
+        {
+            @* Showing status messages to the user (validation/export path) *@
+            <div class="muted text-sm mt-3">@message</div>
+        }
+
+        <div class="stack mt-4">
+            @if (results.Count == 0)
+            {
+                <div class="muted">No results.</div>
+            }
+            else
+            {
+                @* Rendering each result as a card with basic details *@
+                @foreach (var e in results)
+                {
+                    <div class="card p-4">
+                        <div class="flex-between">
+                            <div>
+                                <div class="font-semibold">@e.Title</div>
+                                <div class="muted text-sm">@e.EntryDate.ToString("yyyy-MM-dd") • @e.Category</div>
+                            </div>
+                            @* Creating a link to open the entry *@
+                            <a class="btn-dark" href="@($"/entry/{e.Id}")">Open</a>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(e.PrimaryMood))
+                        {
+                            <div class="muted text-sm mt-2">Mood: @e.PrimaryMood</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(e.TagsCsv))
+                        {
+                            <div class="muted text-sm mt-1">Tags: @e.TagsCsv</div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    // Creating a query parameter so /search?q=something can pre-fill the search box
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? QueryText { get; set; }
+
+    // Creating local state for the filters
+    private string text = "";
+    private string mood = "";
+    private string tag = "";
+
+    // Creating date range state (DateOnly? avoids binder issues)
+    private DateOnly? fromDate;
+    private DateOnly? toDate;
+
+    // Creating simple UI state for messages and results
+    private string message = "";
+    private List<JournalEntry> results = new();
+
+    // Creating lists for dropdown options
+    private List<string> allPrimaryMoods = new();
+    private List<string> allTags = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Setting the search text from the query string if it exists
+        text = QueryText ?? "";
+
+        // Loading mood options from the database/service
+        var moods = await Entries.GetMoodCountsAsync();
+        allPrimaryMoods = moods.Keys.ToList();
+
+        // Loading tag options from the database/service
+        var tags = await Entries.GetTagCountsAsync();
+        allTags = tags.Keys.ToList();
+
+        // Running an initial search so the page shows results on load
+        await RunSearch();
+    }
+
+    // Creating a helper function to convert DateOnly? to a DateTime? at the start of the day
+    private static DateTime? ToDateTimeStart(DateOnly? d)
+        => d.HasValue ? d.Value.ToDateTime(TimeOnly.MinValue) : null;
+
+    // Creating a helper function to convert DateOnly? to a DateTime? at the end of the day
+    private static DateTime? ToDateTimeEnd(DateOnly? d)
+        => d.HasValue ? d.Value.ToDateTime(TimeOnly.MaxValue) : null;
+
+    private async Task RunSearch()
+    {
+        // Clearing any previous message
+        message = "";
+
+        // Converting the date filters into DateTime range values
+        var from = ToDateTimeStart(fromDate);
+        var to = ToDateTimeEnd(toDate);
+
+        // Calling the service to search entries using the selected filters
+        results = await Entries.SearchAsync(text, from, to, mood, tag);
+    }
+
+    private async Task ExportRange()
+    {
+        // Converting the selected dates into DateTime values for exporting
+        var from = ToDateTimeStart(fromDate);
+        var to = ToDateTimeEnd(toDate);
+
+        // Validating that both dates are selected before exporting
+        if (!from.HasValue || !to.HasValue)
+        {
+            message = "Please set From and To dates first.";
+            return;
+        }
+
+        // Exporting the filtered results to a PDF file
+        var path = await Pdf.ExportRangeAsync(from.Value, to.Value);
+        message = $"PDF saved to: {path}";
+    }
+
+    private async Task Clear()
+    {
+        // Resetting all filters back to default values
+        text = "";
+        mood = "";
+        tag = "";
+        fromDate = null;
+        toDate = null;
+
+        // Running search again to refresh the results after clearing
+        await RunSearch();
+    }
+}
