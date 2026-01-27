@@ -1,9 +1,11 @@
+@inject PinLockService PinLock
+
 <nav class="sidebar">
-    <div class="sidebar-top">
+    <div class="sidebar-links flex flex-col gap-50">
     </div>
 
     <div class="sidebar-links">
-        <NavLink class="nav-icon" href="/" Match="NavLinkMatch.All" title="Dashboard">
+        <NavLink class="nav-icon " href="/" Match="NavLinkMatch.All" title="Dashboard">
             <span class="material-icons">home</span>
         </NavLink>
 
@@ -11,7 +13,7 @@
             <span class="material-icons">calendar_month</span>
         </NavLink>
 
-        <NavLink class="nav-icon" href="/timeline" title="Timeline">
+        <NavLink class="nav-icon" href="/timeline" title="Timeline View">
             <span class="material-icons">view_list</span>
         </NavLink>
 
@@ -36,9 +38,6 @@
         </NavLink>
     </div>
 
-    <div class="sidebar-bottom">
-        <button class="nav-icon" title="Logout (UI only)">
-            <span class="material-icons">logout</span>
-        </button>
-    </div>
+   
+   
 </nav>
