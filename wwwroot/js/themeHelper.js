@@ -9,3 +9,20 @@ window.themeHelper = {
         }
     }
 };
+// ui helpers for smooth scrolling + temporary highlight
+window.uiHelpers = window.uiHelpers || {};
+
+window.uiHelpers.scrollToId = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
+window.uiHelpers.flashHighlight = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    el.classList.add("today-highlight");
+    setTimeout(() => el.classList.remove("today-highlight"), 1600);
+};
