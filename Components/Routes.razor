@@ -1,11 +1,20 @@
-﻿<Router AppAssembly="@typeof(MauiProgram).Assembly">
+﻿@using SecureJournal.Components.Layout
+
+@* App router *@
+@* Uses MainLayout as the default layout for all pages *@
+
+<Router AppAssembly="@typeof(MauiProgram).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        @* RouteView loads the matching page component *@
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(SecureJournal.Components.Layout.MainLayout)" />
+
+        @* Focus helper for accessibility after navigation *@
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
 
     <NotFound>
-        <LayoutView Layout="@typeof(MainLayout)">
+        @* NotFound route rendered inside MainLayout *@
+        <LayoutView Layout="@typeof(SecureJournal.Components.Layout.MainLayout)">
             <div class="card p-6">
                 <h1 class="text-2xl font-bold">Page not found</h1>
                 <p class="muted mt-2">The page you are looking for doesn’t exist yet.</p>
