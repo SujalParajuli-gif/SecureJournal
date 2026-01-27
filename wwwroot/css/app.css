@@ -43,8 +43,6 @@ body {
     align-self: flex-start; /* important inside flex layout */
 }
 
-
-
 .sidebar-links {
     margin-top: 22px;
     display: flex;
@@ -208,13 +206,13 @@ body {
 
 /* Greeting text sizes  */
 .greeting-title {
-    font-size: 60px; 
+    font-size: 60px;
     font-weight: 800; /* looks like extrabold */
     margin: 0;
 }
 
 .greeting-subtitle {
-    font-size:20px; 
+    font-size: 20px;
     margin-top: 6px;
 }
 
@@ -275,7 +273,7 @@ body {
    DASHBOARD 
 ---------------------------------------------------------- */
 .grid-dashboard {
-    margin-left:30px;
+    margin-left: 30px;
     display: flex;
     gap: 16px;
     align-items: flex-start;
@@ -509,8 +507,6 @@ body {
         border-color: #0b0b0c;
     }
 
-
-
 .pagination {
     display: flex;
     align-items: center;
@@ -535,47 +531,103 @@ body {
 
 /* -----------------------------
    DARK THEME
-   We need to Add class="theme-dark" on body to enable
+   We applied theme-dark on .app-shell
 ------------------------------ */
-body.theme-dark {
+.app-shell.theme-dark {
     background: #0b0b0c;
     color: #f3f4f6;
+    min-height: 100vh;
 }
 
-    body.theme-dark .muted {
+    .app-shell.theme-dark .muted {
         color: #a1a1aa;
     }
 
-    body.theme-dark .card,
-    body.theme-dark .topbar {
+    .app-shell.theme-dark .card,
+    .app-shell.theme-dark .topbar {
         background: #121212;
         border-color: #27272a;
         box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     }
 
-    body.theme-dark .topbar-search,
-    body.theme-dark .input,
-    body.theme-dark .btn-light,
-    body.theme-dark .calendar-day,
-    body.theme-dark .preview-box,
-    body.theme-dark .empty-box,
-    body.theme-dark .secondary-box,
-    body.theme-dark .chip {
+    .app-shell.theme-dark .topbar-search,
+    .app-shell.theme-dark .input,
+    .app-shell.theme-dark .btn-light,
+    .app-shell.theme-dark .calendar-day,
+    .app-shell.theme-dark .preview-box,
+    .app-shell.theme-dark .empty-box,
+    .app-shell.theme-dark .secondary-box,
+    .app-shell.theme-dark .chip {
         background: #0b0b0c;
         border-color: #27272a;
         color: #f3f4f6;
     }
 
-    body.theme-dark .search-input {
+    .app-shell.theme-dark .search-input {
         color: #f3f4f6;
     }
 
-    body.theme-dark .chip-check {
+    .app-shell.theme-dark .chip-check {
         background: #121212;
         border-color: #27272a;
     }
 
-    body.theme-dark .greeting-illustration {
+    .app-shell.theme-dark .greeting-illustration {
         background: #121212;
         border-color: #27272a;
     }
+    /* Dark mode fix: icon buttons (calendar arrows, topbar icon buttons) */
+    .app-shell.theme-dark .icon-btn {
+        background: #0b0b0c;
+        border-color: #27272a;
+        color: #f3f4f6;
+    }
+
+    /* Dark mode fix: CreatedAt / UpdatedAt bar */
+    .app-shell.theme-dark .timestamps {
+        background: #0b0b0c;
+        border-color: #27272a;
+        color: #f3f4f6;
+    }
+
+    /* Dark mode fix: selected calendar day was forced to white */
+    .app-shell.theme-dark .calendar-day.selected {
+        background: #121212;
+        border-color: #f3f4f6;
+    }
+
+    /* Optional: headings slightly brighter in dark */
+    .app-shell.theme-dark .calendar-head {
+        color: #a1a1aa;
+    }
+
+    /* Dark mode fix: date picker calendar icon (make the icon white) */
+    .app-shell.theme-dark input[type="date"] {
+        /* This tells the browser to use dark UI for date inputs */
+        color-scheme: dark;
+    }
+
+        .app-shell.theme-dark input[type="date"]::-webkit-calendar-picker-indicator {
+            /* This inverts the default black icon and boosts brightness so it looks white */
+            filter: invert(1) brightness(2);
+            opacity: 1;
+        }
+
+    .app-shell.theme-dark .topbar-search,
+    .app-shell.theme-dark .input {
+        background: #0b0b0c;
+        border-color: #27272a;
+        color: #f3f4f6;
+    }
+/* StatCard: placing the icon on the right side of the number */
+.stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.stat-icon {
+    font-size: 34px;
+    line-height: 1;
+}
