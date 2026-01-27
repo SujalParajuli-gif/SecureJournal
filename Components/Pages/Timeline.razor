@@ -1,1 +1,91 @@
 ﻿@page "/timeline"
+@inject JournalEntryService Entries
+
+<div class="card p-6">
+    <h1 class="text-2xl font-bold">Timeline</h1>
+    <p class="muted mt-2">Entries listed newest first.</p>
+
+    <div class="mt-5 row">
+        <button class="btn-light" @onclick="PrevPage" disabled="@(pageIndex == 0)">Prev</button>
+        <div class="muted">Page: @(pageIndex + 1)</div>
+        <button class="btn-light" @onclick="NextPage" disabled="@(!hasMore)">Next</button>
+    </div>
+
+    <div class="mt-6 stack">
+        @if (items.Count == 0)
+        {
+            <div class="muted">No entries found.</div>
+        }
+        else
+        {
+            @foreach (var e in items)
+            {
+                <div class="card p-5">
+                    <div class="flex-between">
+                        <div>
+                            <div class="font-semibold">@e.Title</div>
+                            <div class="muted text-sm">@e.EntryDate.ToString("yyyy-MM-dd") • @e.Category</div>
+                        </div>
+
+                        <a class="btn-dark" href="@($"/entry/{e.Id}")">Open</a>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(e.PrimaryMood))
+                    {
+                        <div class="muted text-sm mt-3">Mood: @e.PrimaryMood</div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(e.TagsCsv))
+                    {
+                        <div class="muted text-sm mt-1">Tags: @e.TagsCsv</div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private const int PageSize = 8;
+    private int pageIndex = 0;
+    private bool hasMore = false;
+    private List<JournalEntry> items = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Entries.DataChanged += Refresh;
+        await LoadAsync();
+    }
+
+    private async void Refresh()
+    {
+        await LoadAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadAsync()
+    {
+        items = await Entries.GetPageAsync(pageIndex, PageSize);
+        var next = await Entries.GetPageAsync(pageIndex + 1, PageSize);
+        hasMore = next.Count > 0;
+    }
+
+    private async Task PrevPage()
+    {
+        if (pageIndex == 0) return;
+        pageIndex--;
+        await LoadAsync();
+    }
+
+    private async Task NextPage()
+    {
+        if (!hasMore) return;
+        pageIndex++;
+        await LoadAsync();
+    }
+
+    public void Dispose()
+    {
+        Entries.DataChanged -= Refresh;
+    }
+}
