@@ -34,6 +34,9 @@
 		<MauiImage Update="Resources\Images\dotnet_bot.svg" BaseSize="168,208" />
 		<MauiFont Include="Resources\Fonts\*" />
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+
+		<!-- Blazor web assets (wwwroot JS/CSS for WebView) -->
+		<MauiAsset Include="wwwroot\**" LogicalName="wwwroot\%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -41,13 +44,13 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
 
-		<!-- SQLite (same style as reference) -->
+		<!-- SQLite package used for local database storage -->
 		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
 
-		<!-- Markdown preview (already in your project, keep one version only) -->
+		<!-- Markdown renderer used for previewing entry content -->
 		<PackageReference Include="Markdig" Version="0.44.0" />
 
-		<!-- PDF export (reference uses QuestPDF) -->
+		<!-- QuestPDF package used for exporting entries to PDF -->
 		<PackageReference Include="QuestPDF" Version="2024.3.0" />
 	</ItemGroup>
 
