@@ -1,5 +1,10 @@
 @page "/settings"
 @inject PinLockService PinLock
+@inject JournalEntryService Entries
+@implements IDisposable
+
+@* creating this page for basic app controls (security + optional demo utilities) *@
+@* creating this seed section for generating 30 days of sample entries for testing analytics/calendar *@
 
 <div class="card p-6">
     <h1 class="text-2xl font-bold">Settings</h1>
@@ -13,4 +18,118 @@
             <button class="btn-danger" @onclick="() => PinLock.Lock()">Lock now</button>
         </div>
     </div>
+
+    @* creating this section for demo/testing data (can be removed after testing) *@
+    <div class="card p-5 mt-6">
+        <div class="font-semibold">Demo data</div>
+        <div class="muted mt-2">Generate sample journal entries for the last 30 days (for charts and calendar).</div>
+
+        <div class="mt-4 row">
+            <button class="btn-light" @onclick="SeedMonthDemo">Seed 30 days</button>
+            <button class="btn-danger" @onclick="ClearAllEntries">Clear all entries</button>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_seedStatus))
+        {
+            <div class="muted mt-3">@_seedStatus</div>
+        }
+    </div>
 </div>
+
+@code {
+    private string _seedStatus = "";
+
+    protected override void OnInitialized()
+    {
+        // refresh message when database changed (optional)
+        Entries.DataChanged += OnDataChanged;
+    }
+
+    private void OnDataChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    // creates sample entries for last 30 days using existing UpsertForDateAsync API
+    private async Task SeedMonthDemo()
+    {
+        try
+        {
+            _seedStatus = "Seeding demo entries...";
+            await InvokeAsync(StateHasChanged);
+
+            var moods = new[] { "Happy", "Calm", "Sad", "Angry", "Anxious", "Excited", "Grateful", "Tired" };
+            var tags = new[] { "study", "gym", "family", "work", "friends", "coding", "health" };
+            var rnd = new Random();
+
+            var created = 0;
+
+            for (int i = 0; i < 30; i++)
+            {
+                var day = DateTime.Today.AddDays(-i);
+
+                // skip if entry already existed for that day
+                if (await Entries.HasEntryForDateAsync(day))
+                    continue;
+
+                // random skip so not every day had an entry
+                if (rnd.NextDouble() < 0.25)
+                    continue;
+
+                var primary = moods[rnd.Next(moods.Length)];
+
+                var title = $"Demo entry {day:MM-dd}";
+                var text = "This is sample data for testing analytics and calendar features. I wrote some reflections today.";
+
+                var pickTags = tags.OrderBy(_ => rnd.Next()).Take(rnd.Next(0, 4)).ToList();
+
+                await Entries.UpsertForDateAsync(
+                    day,
+                    category: "General",
+                    title: title,
+                    markdown: text,
+                    primaryMood: primary,
+                    secondaryMoods: new List<string>(),
+                    tags: pickTags
+                );
+
+                created++;
+            }
+
+            _seedStatus = created == 0
+                ? "No new entries were created (entries already existed for most dates)."
+                : $"Seed completed. Created {created} entries.";
+        }
+        catch
+        {
+            _seedStatus = "Seed failed. Please try again.";
+        }
+    }
+
+    // clears all entries (optional utility for testing)
+    private async Task ClearAllEntries()
+    {
+        try
+        {
+            _seedStatus = "Clearing entries...";
+            await InvokeAsync(StateHasChanged);
+
+            var all = await Entries.GetAllAsync();
+            foreach (var e in all)
+            {
+                await Entries.DeleteAsync(e.Id);
+            }
+
+            _seedStatus = "All entries were cleared.";
+        }
+        catch
+        {
+            _seedStatus = "Clear failed. Please try again.";
+        }
+    }
+
+    public void Dispose()
+    {
+        Entries.DataChanged -= OnDataChanged;
+    }
+}
