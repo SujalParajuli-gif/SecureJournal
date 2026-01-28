@@ -1,12 +1,15 @@
 ﻿using SecureJournal.Data.Models;
 using SQLite;
+
 namespace SecureJournal.Data.Services
 {
-    // “JournalService” equivalent (renamed + rewritten)
+    // Journal entry data layer for SQLite.
+    // Provides CRUD, search, dashboard metrics, streak metrics, calendar keys, and chart series.
     public class JournalEntryService
     {
         private readonly AppSqliteDb _db;
 
+        // Event for UI refresh when entries are created/updated/deleted.
         public event Action? DataChanged;
 
         public JournalEntryService(AppSqliteDb db)
@@ -14,20 +17,21 @@ namespace SecureJournal.Data.Services
             _db = db;
         }
 
+        // DateKey format used for unique date-based lookups.
         private static string ToDateKey(DateTime d) => d.ToString("yyyy-MM-dd");
 
+        // Word-count helper used by analytics.
         private static int CountWords(string? text)
         {
             var t = (text ?? "").Trim();
             if (t.Length == 0) return 0;
 
-            // Simple beginner word count
             return t.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
         }
 
+        // Joins tags into CSV (stored in database).
         private static string JoinTags(List<string> tags)
         {
-            // Case-insensitive distinct + trimmed
             return string.Join(",",
                 tags.Select(t => (t ?? "").Trim())
                     .Where(t => !string.IsNullOrWhiteSpace(t))
@@ -35,6 +39,7 @@ namespace SecureJournal.Data.Services
             );
         }
 
+        // Splits CSV tags into a normalized list (used by filtering and analytics).
         private static List<string> SplitTags(string? csv)
         {
             return (csv ?? "")
@@ -45,12 +50,14 @@ namespace SecureJournal.Data.Services
                 .ToList();
         }
 
+        // Gets entry by primary key.
         public async Task<JournalEntry?> GetByIdAsync(int id)
         {
             await _db.EnsureReadyAsync();
             return await _db.Connection.Table<JournalEntry>().Where(x => x.Id == id).FirstOrDefaultAsync();
         }
 
+        // Gets entry by date (one-entry-per-day logic).
         public async Task<JournalEntry?> GetByDateAsync(DateTime date)
         {
             await _db.EnsureReadyAsync();
@@ -58,11 +65,13 @@ namespace SecureJournal.Data.Services
             return await _db.Connection.Table<JournalEntry>().Where(x => x.DateKey == key).FirstOrDefaultAsync();
         }
 
+        // Existence check for date.
         public async Task<bool> HasEntryForDateAsync(DateTime date)
         {
             return (await GetByDateAsync(date)) != null;
         }
 
+        // Upserts entry by date. Primary mood is required.
         public async Task<int> UpsertForDateAsync(
             DateTime date,
             string category,
@@ -75,10 +84,14 @@ namespace SecureJournal.Data.Services
         {
             await _db.EnsureReadyAsync();
 
+            // Primary mood validation (required for saving).
+            if (string.IsNullOrWhiteSpace(primaryMood))
+                throw new ArgumentException("Primary mood is required before saving.", nameof(primaryMood));
+
             var day = date.Date;
             var key = ToDateKey(day);
 
-            // Normalize moods: max 2, no duplicates, secondary != primary
+            // Secondary moods normalization (max 2, excludes primary).
             var cleanedSecondary = (secondaryMoods ?? new())
                 .Where(m => !string.IsNullOrWhiteSpace(m))
                 .Select(m => m.Trim())
@@ -110,13 +123,13 @@ namespace SecureJournal.Data.Services
 
                 try
                 {
-                    var newId = await _db.Connection.InsertAsync(entry);
+                    await _db.Connection.InsertAsync(entry);
                     DataChanged?.Invoke();
                     return entry.Id;
                 }
                 catch (SQLiteException)
                 {
-                    // If unique constraint hit, fallback to update
+                    // Insert race fallback (if another insert happened for same date).
                     var again = await GetByDateAsync(day);
                     if (again != null)
                     {
@@ -129,6 +142,7 @@ namespace SecureJournal.Data.Services
             return await UpdateExistingAsync(existing.Id, category, title, markdown, primaryMood, cleanedSecondary, tags);
         }
 
+        // Updates an existing entry by id.
         private async Task<int> UpdateExistingAsync(
             int id,
             string category,
@@ -157,6 +171,7 @@ namespace SecureJournal.Data.Services
             return row.Id;
         }
 
+        // Deletes entry by id.
         public async Task DeleteAsync(int id)
         {
             await _db.EnsureReadyAsync();
@@ -164,6 +179,7 @@ namespace SecureJournal.Data.Services
             DataChanged?.Invoke();
         }
 
+        // Gets all entries (newest first).
         public async Task<List<JournalEntry>> GetAllAsync()
         {
             await _db.EnsureReadyAsync();
@@ -172,6 +188,7 @@ namespace SecureJournal.Data.Services
                 .ToListAsync();
         }
 
+        // Gets entries in a date range.
         public async Task<List<JournalEntry>> GetRangeAsync(DateTime from, DateTime to)
         {
             await _db.EnsureReadyAsync();
@@ -185,6 +202,7 @@ namespace SecureJournal.Data.Services
                 .ToListAsync();
         }
 
+        // Gets paged entries.
         public async Task<List<JournalEntry>> GetPageAsync(int pageIndex, int pageSize)
         {
             await _db.EnsureReadyAsync();
@@ -197,6 +215,7 @@ namespace SecureJournal.Data.Services
                 .ToListAsync();
         }
 
+        // Dashboard metrics: last 7 days count, current streak, most common mood.
         public async Task<(int thisWeek, int currentStreak, string commonMood)> GetDashboardStatsAsync()
         {
             var entries = await GetAllAsync();
@@ -212,6 +231,7 @@ namespace SecureJournal.Data.Services
             return (thisWeek, currentStreak, commonMood);
         }
 
+        // Streak metrics: current, longest, missed.
         public async Task<(int current, int longest, int missed)> GetStreakStatsAsync()
         {
             var entries = await GetAllAsync();
@@ -219,6 +239,7 @@ namespace SecureJournal.Data.Services
             return (current, longest, missed);
         }
 
+        // Counts primary moods (optionally in a range).
         public async Task<Dictionary<string, int>> GetMoodCountsAsync(DateTime? from = null, DateTime? to = null)
         {
             var data = (from.HasValue && to.HasValue)
@@ -238,6 +259,7 @@ namespace SecureJournal.Data.Services
             return dict.OrderByDescending(k => k.Value).ToDictionary(k => k.Key, v => v.Value, StringComparer.OrdinalIgnoreCase);
         }
 
+        // Counts tags (optionally in a range).
         public async Task<Dictionary<string, int>> GetTagCountsAsync(DateTime? from = null, DateTime? to = null)
         {
             var data = (from.HasValue && to.HasValue)
@@ -257,6 +279,7 @@ namespace SecureJournal.Data.Services
             return dict.OrderByDescending(k => k.Value).ToDictionary(k => k.Key, v => v.Value, StringComparer.OrdinalIgnoreCase);
         }
 
+        // Date keys for a given month (used for calendar dots/highlights).
         public async Task<HashSet<string>> GetDateKeysWithEntriesAsync(DateTime month)
         {
             await _db.EnsureReadyAsync();
@@ -271,17 +294,17 @@ namespace SecureJournal.Data.Services
             return rows.Select(r => r.DateKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
         }
 
+        // Search by date range + mood + optional tag and text match.
         public async Task<List<JournalEntry>> SearchAsync(
-     string? text,
-     DateTime? from,
-     DateTime? to,
-     string? mood,
-     string? tag
- )
+            string? text,
+            DateTime? from,
+            DateTime? to,
+            string? mood,
+            string? tag
+        )
         {
             await _db.EnsureReadyAsync();
 
-            // sqlite-net-pcl returns AsyncTableQuery<T>, not IQueryable<T>
             var q = _db.Connection.Table<JournalEntry>();
 
             if (from.HasValue)
@@ -293,12 +316,10 @@ namespace SecureJournal.Data.Services
             if (!string.IsNullOrWhiteSpace(mood))
                 q = q.Where(x => x.PrimaryMood == mood);
 
-            // Execute DB query first
             var list = await q
                 .OrderByDescending(x => x.EntryDate)
                 .ToListAsync();
 
-            // Tag filter in-memory (simple like reference)
             if (!string.IsNullOrWhiteSpace(tag))
             {
                 list = list.Where(e =>
@@ -308,7 +329,6 @@ namespace SecureJournal.Data.Services
                 ).ToList();
             }
 
-            // Text filter in-memory (simple like reference)
             if (!string.IsNullOrWhiteSpace(text))
             {
                 var t = text.Trim();
@@ -321,6 +341,32 @@ namespace SecureJournal.Data.Services
             return list;
         }
 
+        // Chart series: daily entry counts for last N days (used by Chart.js).
+        public async Task<List<EntryCountPoint>> GetEntryCountSeriesAsync(int days)
+        {
+            if (days <= 0) return new List<EntryCountPoint>();
+
+            var all = await GetAllAsync();
+
+            var today = DateTime.Now.Date;
+            var start = today.AddDays(-(days - 1));
+
+            var counts = all
+                .Where(e => e.EntryDate >= start && e.EntryDate <= today)
+                .GroupBy(e => e.EntryDate.Date)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var points = new List<EntryCountPoint>();
+            for (var d = start; d <= today; d = d.AddDays(1))
+            {
+                counts.TryGetValue(d, out var c);
+                points.Add(new EntryCountPoint(d, d.ToString("MM-dd"), c));
+            }
+
+            return points;
+        }
+
+        public record EntryCountPoint(DateTime Date, string Label, int Count);
 
         private static int CalculateCurrentStreak(List<JournalEntry> entries)
         {
@@ -361,7 +407,6 @@ namespace SecureJournal.Data.Services
 
             var today = DateTime.Now.Date;
 
-            // Missed days = gaps between earliest and today
             var earliest = days.First();
             var totalDays = (today - earliest).Days + 1;
             var missed = Math.Max(0, totalDays - days.Count);
