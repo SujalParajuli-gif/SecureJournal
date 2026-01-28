@@ -33,7 +33,13 @@
 
                 <button class="calendar-cell day @(has ? "has-entry" : "")"
                         @onclick="() => SelectDate(cell.Value)">
-                    @cell.Value.Day
+                    <span class="day-number">@cell.Value.Day</span>
+
+                    @* Student comment: Dot indicator required for days with entries *@
+                    @if (has)
+                    {
+                        <span class="entry-dot" aria-hidden="true"></span>
+                    }
                 </button>
             }
         }
@@ -77,25 +83,42 @@
         transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
     }
 
-        .calendar-cell.empty {
-            border: 0;
-            background: transparent;
+        /* Student comment: Needed so the dot can be positioned inside the day button */
+        .calendar-cell.day {
+            position: relative;
         }
 
-        .calendar-cell.day:hover {
-            transform: translateY(-1px);
-            background: rgba(0,0,0,0.05);
-        }
+    /* Student comment: Small dot shown when there is an entry on that day */
+    .entry-dot {
+        position: absolute;
+        bottom: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(0,0,0,0.55);
+    }
 
-        .calendar-cell.day:active {
-            transform: scale(0.98);
-        }
+    .calendar-cell.empty {
+        border: 0;
+        background: transparent;
+    }
 
-        .calendar-cell.has-entry {
-            border-color: rgba(0,0,0,0.18);
-            background: rgba(0,0,0,0.06);
-            font-weight: 700;
-        }
+    .calendar-cell.day:hover {
+        transform: translateY(-1px);
+        background: rgba(0,0,0,0.05);
+    }
+
+    .calendar-cell.day:active {
+        transform: scale(0.98);
+    }
+
+    .calendar-cell.has-entry {
+        border-color: rgba(0,0,0,0.18);
+        background: rgba(0,0,0,0.06);
+        font-weight: 700;
+    }
 
     /* Bigger layout when not Compact */
     .card.calendar .calendar-cell {
@@ -118,6 +141,10 @@
             border-color: rgba(255,255,255,0.22);
             background: rgba(255,255,255,0.10);
         }
+
+    .app-shell.theme-dark .entry-dot {
+        background: rgba(255,255,255,0.65);
+    }
 
     .app-shell.theme-dark .calendar-head {
         opacity: 0.7;
