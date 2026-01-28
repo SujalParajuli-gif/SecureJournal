@@ -35,7 +35,7 @@
                         @onclick="() => SelectDate(cell.Value)">
                     <span class="day-number">@cell.Value.Day</span>
 
-                    @* Student comment: Dot indicator required for days with entries *@
+                    @*  Dot indicator required for days with entries *@
                     @if (has)
                     {
                         <span class="entry-dot" aria-hidden="true"></span>
@@ -83,12 +83,12 @@
         transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
     }
 
-        /* Student comment: Needed so the dot can be positioned inside the day button */
+        /*  Needed so the dot can be positioned inside the day button */
         .calendar-cell.day {
             position: relative;
         }
 
-    /* Student comment: Small dot shown when there is an entry on that day */
+    /* Small dot shown when there is an entry on that day */
     .entry-dot {
         position: absolute;
         bottom: 6px;

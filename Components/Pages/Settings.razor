@@ -19,7 +19,7 @@
         </div>
     </div>
 
-    @* creating this section for demo/testing data (can be removed after testing) *@
+    @* creating this section for demo/testing data  *@
     <div class="card p-5 mt-6">
         <div class="font-semibold">Demo data</div>
         <div class="muted mt-2">Generate sample journal entries for the last 30 days (for charts and calendar).</div>
@@ -41,7 +41,7 @@
 
     protected override void OnInitialized()
     {
-        // refresh message when database changed (optional)
+        // refresh message when database changed 
         Entries.DataChanged += OnDataChanged;
     }
 
@@ -106,7 +106,7 @@
         }
     }
 
-    // clears all entries (optional utility for testing)
+    // clears all entries (utility for testing)
     private async Task ClearAllEntries()
     {
         try

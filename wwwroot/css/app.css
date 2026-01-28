@@ -554,7 +554,7 @@ body {
 }
 
 /* ---------------------------------------------------------
-   DASHBOARD (moved from Dashboard.razor <style>)
+   DASHBOARD 
 ---------------------------------------------------------- */
 .dash-surface {
     background: #ffffff;
@@ -588,7 +588,7 @@ body {
     }
 
 /* ---------------------------------------------------------
-   STATCARD (moved from StatCard.razor <style>)
+   STATCARD 
 ---------------------------------------------------------- */
 .stat-surface {
     background: #ffffff;
@@ -787,7 +787,7 @@ body {
         color: rgba(255,255,255,0.45);
     }
 
-/* StatCard layout helper: icon on right side of number (kept from your file) */
+/* StatCard layout helper: icon on right side of number */
 .stat-top {
     display: flex;
     align-items: center;

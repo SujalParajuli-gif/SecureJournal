@@ -10,7 +10,7 @@
         <label class="label">Add Custom Tag</label>
 
         <div class="row">
-            @* Student comment: Alphabetic-only validation for custom tags *@
+            @*  Alphabetic-only validation for custom tags *@
             <input class="input"
                    placeholder="Type tag and press Add"
                    value="@customTag"
@@ -65,7 +65,7 @@
     private string customTag = "";
     private string selectedPrebuilt = "";
 
-    // Student comment: Avoid showing the same popup for every keypress.
+    //  Avoid showing the same popup for every keypress.
     private bool _tagErrorShown;
 
     private void OnCustomTagInput(ChangeEventArgs e)
@@ -97,7 +97,7 @@
         var t = (customTag ?? "").Trim();
         if (string.IsNullOrWhiteSpace(t)) return;
 
-        // Student comment: final validation check before adding.
+        // final validation check before adding.
         if (!InputValidation.IsAlphabeticWithSpaces(t))
         {
             Notifier.ShowError(

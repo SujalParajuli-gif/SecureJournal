@@ -16,15 +16,15 @@ namespace SecureJournal.Data.Models
         public string Category { get; set; } = "";
         public string Title { get; set; } = "";
 
-        // Your UI writes Markdown, so store Markdown.
+        //  storing Markdown.
         public string Markdown { get; set; } = "";
 
-        // Mood fields (same idea as reference: 1 primary + up to 2 secondary)
+        // Mood fields 
         public string PrimaryMood { get; set; } = "";
         public string SecondaryMood1 { get; set; } = "";
         public string SecondaryMood2 { get; set; } = "";
 
-        // Tags stored as CSV (reference-style simplicity)
+        // Tags stored as CSV
         public string TagsCsv { get; set; } = "";
 
         public DateTime CreatedAt { get; set; }

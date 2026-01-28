@@ -1,5 +1,8 @@
 @using Markdig
+@using SecureJournal.Data.Helpers
 @inject JournalEntryService Entries
+@inject SecureJournal.Data.Services.NotificationService Notifier
+@implements IDisposable
 
 <div class="card p-5">
     <div class="flex-between">
@@ -30,7 +33,11 @@
 
     <div class="mt-4">
         <label class="label">Title</label>
-        <input class="input" placeholder="Give your entry a title..." @bind="Title" />
+        @*  Alphabetic-only validation (letters + spaces). *@
+        <input class="input"
+               placeholder="Give your entry a title..."
+               value="@Title"
+               @oninput="OnTitleInput" />
     </div>
 
     <div class="mt-4">
@@ -60,7 +67,7 @@
     </div>
 
     <div class="mt-4">
-        <MoodPicker @bind-PrimaryMood="PrimaryMood" @bind-SecondaryMoods="SecondaryMoods" />
+        <MoodPicker @ref="moodPickerRef" @bind-PrimaryMood="PrimaryMood" @bind-SecondaryMoods="SecondaryMoods" />
     </div>
 
     <div class="mt-4">
@@ -85,6 +92,8 @@
 </div>
 
 @code {
+    private MoodPicker? moodPickerRef;
+
     private string Title = "";
     private string Content = "";
     private bool ShowPreview = true;
@@ -102,6 +111,9 @@
     private DateTime updatedAt;
 
     private string statusText = "Loading...";
+
+    //  Avoid spamming the same popup on every keypress.
+    private bool _titleErrorShown;
 
     private string TodayDateValue => DateTime.Now.ToString("yyyy-MM-dd");
     private string CreatedAtText => createdAt == default ? "-" : createdAt.ToString("yyyy-MM-dd HH:mm");
@@ -171,6 +183,32 @@
 
     private void TogglePreview() => ShowPreview = !ShowPreview;
 
+    private void OnTitleInput(ChangeEventArgs e)
+    {
+        //  Validate "alphabetic only" (letters + spaces).
+        var raw = (e.Value?.ToString() ?? "");
+
+        if (!InputValidation.IsAlphabeticWithSpaces(raw))
+        {
+            //  Remove invalid chars so the textbox becomes valid again.
+            Title = InputValidation.KeepOnlyLettersAndSpaces(raw);
+
+            if (!_titleErrorShown)
+            {
+                _titleErrorShown = true;
+                Notifier.ShowError(
+                    "Invalid input",
+                    "Only alphabetic characters are allowed in the Title field (letters and spaces only)."
+                );
+            }
+        }
+        else
+        {
+            Title = raw;
+            _titleErrorShown = false;
+        }
+    }
+
     private string PreviewHtml
     {
         get
@@ -186,19 +224,50 @@
 
     private async Task SaveToday()
     {
+        //  Required field validation before touching the database.
+        if (string.IsNullOrWhiteSpace(PrimaryMood))
+        {
+            moodPickerRef?.Validate();
+            Notifier.ShowError(
+                "Primary mood required",
+                "Please select one Primary Mood before saving your entry."
+            );
+            return;
+        }
+
+        //  Title already cleaned during typing, but we double-check here too.
+        if (!InputValidation.IsAlphabeticWithSpaces(Title))
+        {
+            Notifier.ShowError(
+                "Invalid title",
+                "Title can contain only alphabetic characters (letters and spaces)."
+            );
+            return;
+        }
+
         statusText = "Saving...";
 
-        await Entries.UpsertForDateAsync(
-            DateTime.Now.Date,
-            Category,
-            Title,
-            Content,
-            PrimaryMood,
-            SecondaryMoods,
-            Tags
-        );
+        try
+        {
+            await Entries.UpsertForDateAsync(
+                DateTime.Now.Date,
+                Category,
+                Title,
+                Content,
+                PrimaryMood,
+                SecondaryMoods,
+                Tags
+            );
 
-        statusText = "Saved.";
+            statusText = "Saved.";
+            Notifier.ShowSuccess("Saved", "Your journal entry was saved successfully.");
+        }
+        catch (Exception ex)
+        {
+            //  Friendly message for unexpected errors.
+            statusText = "Save failed.";
+            Notifier.ShowError("Save failed", $"Something went wrong while saving. {ex.Message}");
+        }
     }
 
     private async Task DeleteToday()
@@ -206,8 +275,18 @@
         if (!hasTodayEntry || todayId <= 0) return;
 
         statusText = "Deleting...";
-        await Entries.DeleteAsync(todayId);
-        statusText = "Deleted.";
+
+        try
+        {
+            await Entries.DeleteAsync(todayId);
+            statusText = "Deleted.";
+            Notifier.ShowSuccess("Deleted", "Today's entry was deleted.");
+        }
+        catch (Exception ex)
+        {
+            statusText = "Delete failed.";
+            Notifier.ShowError("Delete failed", $"Could not delete the entry. {ex.Message}");
+        }
     }
 
     public void Dispose()
